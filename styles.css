@@ -864,11 +864,15 @@ main {
   display: block;
   width: 100%;
   height: 100%;
-  touch-action: none;
+  touch-action: pan-y;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   cursor: default;
+}
+
+.canvas-shell.is-zoomable #plot-canvas {
+  touch-action: none;
 }
 
 .canvas-shell.is-zoomable #plot-canvas {

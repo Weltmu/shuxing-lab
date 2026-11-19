@@ -3462,7 +3462,9 @@
       state.pointers.delete(event.pointerId);
       if (state.pinch && touchPoints().length < 2) state.pinch = null;
       if (state.dragging) endDrag();
-      if (state.panning) endPan();
+      if (state.panning && (state.activePointer === undefined || !state.pointers.has(state.activePointer))) {
+        endPan();
+      }
     });
 
     els.canvas.addEventListener('contextmenu', (event) => {
