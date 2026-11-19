@@ -260,6 +260,19 @@
       .trim();
 
     source = source.replace(/\b(ln|arcsin|arccos|arctan|arsinh|arcosh|artanh)\b/g, (name) => ALIASES[name] || name);
+    // log2x / log10x mean log base 2 / 10, not log(2x).
+    source = source.replace(
+      /(^|[^A-Za-z_])log\s*(10|2)\s*x\b/gi,
+      (match, lead, base) => `${lead}log${base}(x)`
+    );
+    // Function with a numeric factor directly before x: sin2x -> sin(2x), cos0.5x -> cos(0.5x).
+    source = source.replace(
+      /(^|[^A-Za-z_])(arcsinh|arccosh|arctanh|arcsin|arccos|arctan|arsinh|arcosh|artanh|asinh|acosh|atanh|asin|acos|atan|sinh|cosh|tanh|sin|cos|tan|sqrt|exp|ln)\s*(\d+(?:\.\d+)?)\s*x\b/gi,
+      (match, lead, name, factor) => {
+        const key = name.toLowerCase();
+        return `${lead}${ALIASES[key] || key}(${factor}x)`;
+      }
+    );
     source = source.replace(
       /(^|[^A-Za-z_])(arcsinh|arccosh|arctanh|arcsin|arccos|arctan|arsinh|arcosh|artanh|asinh|acosh|atanh|asin|acos|atan|sinh|cosh|tanh|sin|cos|tan|sqrt|exp|ln|log)\s*x\b/gi,
       (match, lead, name) => {
