@@ -9,7 +9,7 @@
   <title>数形实验室 · 输入一个函数</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/mathjs@14.0.1/lib/browser/math.js" defer></script>
-  <script src="app.js?v=20261119b" defer></script>
+  <script src="app.js?v=20261119d" defer></script>
 </head>
 <body>
   <header class="topbar">
@@ -110,7 +110,7 @@
             <section class="mode-panel is-active" id="panel-limit" role="tabpanel" aria-labelledby="tab-limit" data-panel="limit">
               <div class="panel-head">
                 <div><span class="panel-index">01</span><h2>极限</h2></div>
-                <p>把探针拖向 a，看函数值最终靠向谁。</p>
+                <p>从左右两侧逐次逼近 a，看函数值最终靠向谁。</p>
               </div>
 
               <div class="param-row">
@@ -138,6 +138,7 @@
               </div>
 
               <div class="stat-list">
+                <div class="stat-row"><span>探针与 a 的距离</span><strong id="limit-dist">—</strong></div>
                 <div class="stat-row"><span>与极限的差</span><strong id="limit-gap">—</strong></div>
                 <div class="stat-row"><span>a 处的值 f(a)</span><strong id="limit-at">—</strong></div>
               </div>
@@ -279,6 +280,19 @@
           </div>
         </aside>
       </div>
+
+      <section class="derive-card" aria-labelledby="derive-title">
+        <div class="derive-head">
+          <div>
+            <span class="derive-kicker">STEP BY STEP</span>
+            <h2 id="derive-title">推导过程</h2>
+          </div>
+          <span class="derive-mode" id="derive-mode">极限</span>
+        </div>
+        <ol class="derive-steps" id="derive-steps">
+          <li class="derive-empty">输入函数后，这里会按当前模式展开推导步骤。</li>
+        </ol>
+      </section>
 
       <footer class="lab-foot">
         <span>数形实验室 / SHUXING LAB</span>

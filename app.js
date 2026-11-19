@@ -36,6 +36,7 @@
     limitL: $('limit-L'),
     limitLeft: $('limit-left'),
     limitRight: $('limit-right'),
+    limitDist: $('limit-dist'),
     limitGap: $('limit-gap'),
     limitAt: $('limit-at'),
     limitFormula: $('limit-formula'),
@@ -71,7 +72,10 @@
     intNLive: $('int-n-live'),
     intExact: $('int-exact'),
     intError: $('int-error-val'),
-    intFormula: $('int-formula')
+    intFormula: $('int-formula'),
+
+    deriveMode: $('derive-mode'),
+    deriveSteps: $('derive-steps')
   };
 
   const ctx = els.canvas.getContext('2d');
@@ -102,6 +106,7 @@
     node: null,
     compiled: null,
     evalAt: null,
+    symbolicDeriv: '',
     mode: 'limit',
     lastProbeMode: 'limit',
     probeX: 0.8,
@@ -392,6 +397,28 @@
     const evaluate = makeEvaluator(compiled);
     if (!hasFiniteSample(evaluate)) throw new Error('unplottable');
     return { normalized: normalized, node: node, compiled: compiled, evaluate: evaluate };
+  }
+
+  function symbolicDerivativeText(node) {
+    if (!window.math || !node) return '';
+    try {
+      const derivative = window.math.derivative(node, 'x');
+      let text = derivative.toString({ implicit: 'hide', parenthesis: 'auto' });
+      try {
+        const simplified = window.math.simplify(derivative);
+        const simplifiedText = simplified.toString({ implicit: 'hide', parenthesis: 'auto' });
+        if (simplifiedText.length <= Math.max(90, text.length + 12)) text = simplifiedText;
+      } catch (error) {
+        /* keep the unsimplified form */
+      }
+      return text
+        .replace(/\s*\^\s*/g, '^')
+        .replace(/\s*\*\s*/g, '·')
+        .replace(/\s+/g, ' ')
+        .trim();
+    } catch (error) {
+      return '';
+    }
   }
 
   function parseScalar(raw) {
@@ -1613,6 +1640,137 @@
     setFormula(els.derivFormula, derivativeFormulaHtml());
     setFormula(els.taylorFormula, taylorFormulaHtml());
     setFormula(els.intFormula, integralFormulaHtml());
+    refreshDerivation();
+  }
+
+  /* ───────────────────────────── Derivation ───────────────────────────── */
+
+  function deriveTableHtml(headers, rows) {
+    return `<div class="derive-table-wrap"><table class="derive-table"><thead><tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join('')}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  }
+
+  function limitDerivationSteps() {
+    const a = state.limit.a;
+    const result = state.limit.result;
+    const samples = [0.5, 0.05, 0.005];
+    const rows = samples.map((h) => [
+      fmt(h, 3),
+      fmt(state.evalAt(a - h), 4),
+      fmt(state.evalAt(a + h), 4)
+    ]);
+
+    let verdict = '等待生成图像。';
+    if (result) {
+      if (result.type === 'finite' && result.side === 'both') {
+        verdict = `两侧都收敛到 <span class="derive-answer">${escapeHtml(fmt(result.value))}</span>，所以双侧极限存在。`;
+      } else if (result.type === 'infinite' && result.side === 'both') {
+        const sign = result.sign > 0 ? '∞' : `${MINUS}∞`;
+        verdict = `两侧都趋向 <span class="derive-answer">${sign}</span>，极限发散。`;
+      } else if (result.type === 'finite') {
+        verdict = `只有${result.side === 'right' ? '右' : '左'}侧收敛到 <span class="derive-answer">${escapeHtml(fmt(result.value))}</span>，另一侧发散，双侧极限不存在。`;
+      } else if (result.type === 'infinite') {
+        const sign = result.sign > 0 ? '∞' : `${MINUS}∞`;
+        verdict = `只有${result.side === 'right' ? '右' : '左'}侧趋向 <span class="derive-answer">${sign}</span>，另一侧不同，双侧极限不存在。`;
+      } else {
+        verdict = '左右两侧没有落到同一个数（或至少一侧发散），所以<span class="derive-answer">双侧极限不存在</span>。';
+      }
+    }
+
+    return [
+      `求 <span class="derive-math">lim<sub>x→${escapeHtml(fmt(a, 4))}</sub> f(x)</span>，其中 <span class="derive-math">f(x) = ${escapeHtml(state.rawExpr)}</span>。`,
+      `从左右两侧取越来越小的 h，分别计算 f(a ${MINUS} h) 与 f(a + h)：${deriveTableHtml(['h', 'f(a − h)', 'f(a + h)'], rows)}`,
+      `对照两侧的趋势：${verdict}<span class="derive-note"> 极限只看靠近 a 时的趋势，与 a 点本身是否有定义无关。</span>`
+    ];
+  }
+
+  function derivativeDerivationSteps() {
+    const x = state.probeX;
+    const y = state.evalAt(x);
+    const slope = derivativeAt(x);
+    const slopeText = Number.isFinite(slope) ? fmt(slope, 6) : '无定义';
+    const symbolic = state.symbolicDeriv
+      ? `对 f(x) = ${escapeHtml(state.rawExpr)} 求导：<span class="derive-math">f′(x) = ${escapeHtml(state.symbolicDeriv)}</span>。`
+      : `这个函数无法符号求导，改用中心差分近似斜率。`;
+
+    return [
+      `导数定义：<span class="derive-math">f′(a) = lim<sub>h→0</sub> [f(a + h) ${MINUS} f(a)] / h</span>。`,
+      symbolic,
+      `代入当前切点 x = ${escapeHtml(fmt(x, 4))}：<span class="derive-math">f′(x) ≈ ${escapeHtml(slopeText)}</span>，函数值 <span class="derive-math">f(x) = ${escapeHtml(fmt(y, 6))}</span>。`,
+      `用点斜式写出切线：<span class="derive-math">${escapeHtml(tangentEquation(x, y, slope))}</span>。`
+    ];
+  }
+
+  function taylorDerivationSteps() {
+    const n = state.taylor.n;
+    const series = state.taylor.series;
+    if (!series || series.maxValid < n) {
+      return [`当前函数在 x = 0 处无法展开到 ${n} 阶，请降低阶数或换一个函数。`];
+    }
+
+    const rows = [];
+    for (let k = 0; k <= n; k += 1) {
+      const coefficient = series.coefficients[k];
+      rows.push([
+        String(k),
+        Math.abs(coefficient) < 1e-9 ? '0' : fmt(coefficient, 6)
+      ]);
+    }
+
+    const original = state.evalAt(1);
+    const polynomial = series.polys[n](1);
+    const errorText = Number.isFinite(original) && Number.isFinite(polynomial)
+      ? fmt(Math.abs(polynomial - original), 6)
+      : '无定义';
+
+    const steps = [
+      `泰勒公式：<span class="derive-math">P${SUBSCRIPT[n]}(x) = Σ<sub>k=0</sub><sup>${n}</sup> f⁽ᵏ⁾(0) / k! · xᵏ</span>，中心固定在 x = 0。`,
+      `逐阶系数 f⁽ᵏ⁾(0) / k!：${deriveTableHtml(['k', '系数'], rows)}`,
+      `合并同类项：<span class="derive-math">P${SUBSCRIPT[n]}(x) = ${escapeHtml(series.strings[n])}</span>。`,
+      `在 x = 1 处比较：<span class="derive-math">|f(1) ${MINUS} P${SUBSCRIPT[n]}(1)| = ${escapeHtml(errorText)}</span>，阶数越高，中心附近的误差通常越小。`
+    ];
+    if (series.extended) {
+      steps.push('<span class="derive-note">注意：f 在 x = 0 处无定义，展开使用其连续延拓（极限值）作为常数项。</span>');
+    }
+    return steps;
+  }
+
+  function integralDerivationSteps() {
+    const data = state.integral.data;
+    if (!data) return ['等待积分区间与函数。'];
+    const rows = data.rectangles.slice(0, 3).map((rectangle, index) => [
+      String(index + 1),
+      fmt(rectangle.middle, 4),
+      fmt(rectangle.y, 4)
+    ]);
+    const exactText = Number.isFinite(data.exact) ? fmt(data.exact, 6) : '无法计算';
+    const errorText = Number.isFinite(data.error) ? fmt(data.error, 6) : '无法计算';
+
+    return [
+      `把区间 [${escapeHtml(fmt(data.a, 4))}, ${escapeHtml(fmt(data.b, 4))}] 分成 n = ${data.n} 份：<span class="derive-math">Δx = (b ${MINUS} a) / n = ${escapeHtml(fmt(data.dx, 6))}</span>。`,
+      `每个小区间取中点 <span class="derive-math">xᵢ* = a + (i ${MINUS} 1/2)Δx</span>，前几个采样：${deriveTableHtml(['i', 'xᵢ*', 'f(xᵢ*)'], rows)}`,
+      `把所有矩形面积相加：<span class="derive-math">S<sub>${data.n}</sub> = Σ f(xᵢ*) · Δx ≈ <span class="derive-answer">${escapeHtml(Number.isFinite(data.approx) ? fmt(data.approx, 6) : '无法计算')}</span></span>。`,
+      `与高精度参考值 <span class="derive-math">${escapeHtml(exactText)}</span> 相比，当前误差为 <span class="derive-math">${escapeHtml(errorText)}</span>。`
+    ];
+  }
+
+  function refreshDerivation() {
+    const titles = { limit: '极限', derivative: '导数', taylor: '泰勒', integral: '积分' };
+    els.deriveMode.textContent = titles[state.mode] || '';
+
+    let steps;
+    if (!state.generated) {
+      steps = ['<span class="derive-note">输入函数后，这里会按当前模式展开推导步骤。</span>'];
+    } else if (state.mode === 'limit') {
+      steps = limitDerivationSteps();
+    } else if (state.mode === 'derivative') {
+      steps = derivativeDerivationSteps();
+    } else if (state.mode === 'taylor') {
+      steps = taylorDerivationSteps();
+    } else {
+      steps = integralDerivationSteps();
+    }
+
+    els.deriveSteps.innerHTML = steps.map((step) => `<li>${step}</li>`).join('');
   }
 
   /* ───────────────────────────── Readouts ───────────────────────────── */
@@ -1627,6 +1785,7 @@
       setReadout(els.limitFx, DASH, false);
       setReadout(els.limitX, DASH, false);
       setReadout(els.limitL, DASH, false);
+      setReadout(els.limitDist, DASH, false);
       setReadout(els.limitGap, DASH, false);
       setReadout(els.limitAt, DASH, false);
       return;
@@ -1638,6 +1797,7 @@
     const atValue = state.evalAt(state.limit.a);
 
     setNumber(els.limitX, x, { format: (number) => fmt(number, 4), duration: duration });
+    setNumber(els.limitDist, Math.abs(x - state.limit.a), { format: (number) => fmt(number, 4), duration: duration });
 
     if (Number.isFinite(value)) {
       setNumber(els.limitFx, value, { duration: duration });
@@ -1817,7 +1977,7 @@
     if (!state.generated) {
       els.hint.textContent = '输入表达式，停顿后自动绘制';
     } else if (state.mode === 'limit') {
-      els.hint.textContent = '拖动橙红色探针，或让它从某一侧逼近 a';
+      els.hint.textContent = '拖动探针，或用左右逼近按钮逐次靠近 a';
     } else if (state.mode === 'derivative') {
       els.hint.textContent = '拖动切点，观察切线如何跟随曲线';
     } else if (state.mode === 'taylor') {
@@ -1965,6 +2125,7 @@
     state.node = built.node;
     state.compiled = built.compiled;
     state.evalAt = built.evaluate;
+    state.symbolicDeriv = symbolicDerivativeText(built.node);
 
     readTargetsFromFields();
 
@@ -2138,6 +2299,7 @@
       }
     }
     updateActiveReadout();
+    refreshDerivation();
     scheduleRender();
   }
 
@@ -2187,6 +2349,7 @@
       }
       state.probeX = next;
       updateActiveReadout();
+      refreshDerivation();
       scheduleRender();
     });
   }
@@ -2208,12 +2371,28 @@
     const token = state.approachToken;
     const a = state.limit.a;
     const span = state.view.xMax - state.view.xMin;
-    const distance = Math.max(0.65, Math.min(1.8, span * 0.19));
-    state.probeX = a + direction * distance;
+    const minGap = Math.max(span * 0.0035, 0.012);
+    const current = state.probeX - a;
+    const onSide = current * direction > 0;
+
+    let start = state.probeX;
+    let distance;
+    if (onSide) {
+      distance = Math.max(minGap, Math.abs(current) * 0.32);
+    } else {
+      const entry = Math.abs(current) > minGap
+        ? Math.min(1.4, Math.abs(current))
+        : Math.max(0.9, span * 0.16);
+      distance = Math.max(minGap, entry * 0.32);
+      start = a + direction * entry;
+    }
+    const target = a + direction * distance;
     state.approaching = true;
 
+    if (reduceMotion.matches || !onSide) state.probeX = start;
+
     if (reduceMotion.matches) {
-      state.probeX = a;
+      state.probeX = target;
       state.approaching = false;
       updateActiveReadout();
       scheduleRender();
@@ -2221,19 +2400,19 @@
     }
 
     const started = performance.now();
-    const duration = 1050;
+    const duration = onSide ? 380 : 560;
     const step = (now) => {
       if (token !== state.approachToken) return;
       const progress = clamp((now - started) / duration, 0, 1);
-      const remaining = Math.pow(1 - progress, 2.55);
-      state.probeX = progress >= 1 ? a : a + direction * distance * remaining;
+      const eased = 1 - Math.pow(1 - progress, 3);
+      state.probeX = start + (target - start) * eased;
       updateActiveReadout();
       scheduleRender();
       if (progress < 1) {
         state.approachRaf = requestAnimationFrame(step);
       } else {
         state.approachRaf = 0;
-        state.probeX = a;
+        state.probeX = target;
         state.approaching = false;
         updateActiveReadout();
         scheduleRender();
