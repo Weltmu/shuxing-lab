@@ -1,0 +1,31 @@
+[Unit]
+Description=Shuxing Lab AI proxy
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=shuxing-ai
+Group=shuxing-ai
+WorkingDirectory=/opt/shuxing-lab/ai
+EnvironmentFile=/etc/shuxing-lab/ai.env
+Environment=NODE_ENV=production
+ExecStart=/opt/shuxing-lab/ai/runtime/bin/node /opt/shuxing-lab/ai/ai-proxy.js
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6
+RestrictNamespaces=true
+LockPersonality=true
+MemoryMax=256M
+TasksMax=64
+
+[Install]
+WantedBy=multi-user.target

@@ -7,11 +7,11 @@
   <meta name="color-scheme" content="dark">
   <meta name="description" content="数形实验室：输入一个函数，拖动探针，观察极限、导数、泰勒展开与积分。">
   <title>数形实验室 · 输入一个函数</title>
-  <link rel="stylesheet" href="styles.css?v=20261119e">
+  <link rel="stylesheet" href="styles.css?v=20261119g">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/mathjs@14.0.1/lib/browser/math.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" defer></script>
-  <script src="app.js?v=20261119f" defer></script>
+  <script src="app.js?v=20261119h" defer></script>
 </head>
 <body>
   <header class="topbar">
@@ -82,10 +82,18 @@
         <section class="plot-card" aria-labelledby="plot-caption">
           <div class="plot-head">
             <div class="plot-id"><span class="status-light" id="status-light"></span><span id="plot-caption">等待输入函数</span></div>
-            <span class="plot-scale" id="plot-scale">x ∈ [−3, 3]</span>
+            <div class="plot-tools">
+              <span class="plot-scale" id="plot-scale">x ∈ [−3, 3]</span>
+              <div class="zoom-group" role="group" aria-label="图像缩放">
+                <button class="zoom-btn" id="zoom-out" type="button" aria-label="缩小图像" title="缩小">−</button>
+                <button class="zoom-btn" id="zoom-in" type="button" aria-label="放大图像" title="放大">+</button>
+                <button class="zoom-btn zoom-btn--reset" id="zoom-reset" type="button" aria-label="复位图像视图" title="复位（双击图像也可复位）">↺</button>
+              </div>
+            </div>
           </div>
           <div class="canvas-shell" id="canvas-shell">
-            <canvas id="plot-canvas" tabindex="0" role="img" aria-label="函数图像。生成后可在极限与导数模式中拖动橙红色探针。"></canvas>
+            <canvas id="plot-canvas" tabindex="0" role="img" aria-label="函数图像。生成后可在极限与导数模式中拖动橙红色探针，并可用滚轮缩放、Shift 拖动平移。"></canvas>
+            <p class="canvas-zoom-tip" aria-hidden="true">滚轮缩放 · Shift 拖动平移 · 双击复位</p>
             <div class="canvas-empty" id="canvas-empty">
               <span class="empty-symbol" aria-hidden="true">ƒ</span>
               <p><strong>输入表达式，自动作图</strong><span>sinx、secx、sin(x)/x、x^2 都可以</span></p>

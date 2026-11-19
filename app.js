@@ -22,6 +22,9 @@
     legend: $('canvas-legend'),
     caption: $('plot-caption'),
     scale: $('plot-scale'),
+    zoomIn: $('zoom-in'),
+    zoomOut: $('zoom-out'),
+    zoomReset: $('zoom-reset'),
     hint: $('plot-hint'),
     coord: $('plot-coord'),
     light: $('status-light'),
@@ -149,6 +152,13 @@
     lastProbeMode: 'limit',
     probeX: 0.8,
     dragging: false,
+    activePointer: undefined,
+    panning: false,
+    panStart: null,
+    pointers: new Map(),
+    pinch: null,
+    viewTouched: false,
+    zoomTimer: 0,
     view: { xMin: -5, xMax: 5, yMin: -3, yMax: 3 },
     limit: { a: 0, result: null },
     taylor: { n: 3, series: null },
@@ -718,6 +728,87 @@
     return view.xMin + ((px - rect.x) / rect.w) * (view.xMax - view.xMin);
   }
 
+  function pixelToY(py, rect) {
+    const view = state.view;
+    return view.yMax - ((py - rect.y) / rect.h) * (view.yMax - view.yMin);
+  }
+
+  const MIN_VIEW_SPAN = 1e-7;
+  const MAX_VIEW_SPAN = 1e7;
+
+  function viewSpanLimits(spanX, spanY, scale) {
+    const minScale = Math.max(MIN_VIEW_SPAN / spanX, MIN_VIEW_SPAN / spanY);
+    const maxScale = Math.min(MAX_VIEW_SPAN / spanX, MAX_VIEW_SPAN / spanY);
+    return clamp(scale, Math.max(minScale, 0.01), Math.min(maxScale, 100));
+  }
+
+  function markZooming() {
+    els.shell.classList.add('is-zooming');
+    window.clearTimeout(state.zoomTimer);
+    state.zoomTimer = window.setTimeout(() => {
+      els.shell.classList.remove('is-zooming');
+    }, 900);
+  }
+
+  function zoomAtPoint(factor, localX, localY) {
+    if (!state.generated) return;
+    const rect = plotRect();
+    const view = state.view;
+    const spanX = view.xMax - view.xMin;
+    const spanY = view.yMax - view.yMin;
+    if (!(spanX > 0) || !(spanY > 0)) return;
+
+    const px = clamp(localX, rect.x, rect.x + rect.w);
+    const py = clamp(localY, rect.y, rect.y + rect.h);
+    const anchorX = pixelToX(px, rect);
+    const anchorY = pixelToY(py, rect);
+    const scale = viewSpanLimits(spanX, spanY, factor);
+
+    state.view = {
+      xMin: anchorX - (px - rect.x) / rect.w * spanX * scale,
+      xMax: anchorX + (rect.x + rect.w - px) / rect.w * spanX * scale,
+      yMin: anchorY - (rect.y + rect.h - py) / rect.h * spanY * scale,
+      yMax: anchorY + (py - rect.y) / rect.h * spanY * scale
+    };
+    state.viewTouched = true;
+    markZooming();
+    updatePlotChrome();
+    scheduleRender();
+  }
+
+  function panByPixels(dx, dy) {
+    if (!state.generated || (!dx && !dy)) return;
+    const rect = plotRect();
+    const view = state.view;
+    const spanX = view.xMax - view.xMin;
+    const spanY = view.yMax - view.yMin;
+    state.view = {
+      xMin: view.xMin - (dx / rect.w) * spanX,
+      xMax: view.xMax - (dx / rect.w) * spanX,
+      yMin: view.yMin + (dy / rect.h) * spanY,
+      yMax: view.yMax + (dy / rect.h) * spanY
+    };
+    state.viewTouched = true;
+    markZooming();
+    updatePlotChrome();
+    scheduleRender();
+  }
+
+  function resetPlotView() {
+    if (!state.generated) return;
+    computeView();
+    state.viewTouched = false;
+    markZooming();
+    updatePlotChrome();
+    scheduleRender();
+  }
+
+  function stepPlotZoom(direction) {
+    if (!state.generated) return;
+    const rect = plotRect();
+    zoomAtPoint(direction > 0 ? 1 / 1.35 : 1.35, rect.x + rect.w / 2, rect.y + rect.h / 2);
+  }
+
   /* ───────────────────────────── View range ───────────────────────────── */
 
   function computeView() {
@@ -777,6 +868,7 @@
     }
 
     state.view = { xMin: xMin, xMax: xMax, yMin: yMin, yMax: yMax };
+    state.viewTouched = false;
   }
 
   function tickText(value, step) {
@@ -2861,12 +2953,16 @@
 
     const draggable = state.generated && (state.mode === 'limit' || state.mode === 'derivative');
     els.shell.classList.toggle('is-draggable', draggable);
+    els.shell.classList.toggle('is-zoomable', state.generated);
+    els.zoomIn.disabled = !state.generated;
+    els.zoomOut.disabled = !state.generated;
+    els.zoomReset.disabled = !state.generated;
     els.coord.textContent = `CANVAS / 2D · ${state.mode.toUpperCase()}`;
     els.canvas.setAttribute(
       'aria-label',
       draggable
-        ? '函数图像。可拖动橙红色探针，或使用左右方向键移动。'
-        : '函数图像。'
+        ? '函数图像。可拖动橙红色探针或使用左右方向键移动；滚轮缩放，Shift 拖动平移，双击复位。'
+        : '函数图像。可用滚轮缩放、拖动平移，双击复位。'
     );
   }
 
@@ -3177,14 +3273,109 @@
   }
 
   function bindProbeInteraction() {
-    els.canvas.addEventListener('pointerdown', (event) => {
-      if (!state.generated || (state.mode !== 'limit' && state.mode !== 'derivative')) return;
-      if (event.pointerType === 'mouse' && event.button !== 0) return;
-      event.preventDefault();
+    const isProbeMode = () => state.mode === 'limit' || state.mode === 'derivative';
+
+    const localPoint = (event) => {
+      const bounds = els.canvas.getBoundingClientRect();
+      return {
+        x: event.clientX - bounds.left,
+        y: event.clientY - bounds.top,
+        clientX: event.clientX,
+        clientY: event.clientY
+      };
+    };
+
+    const beginProbe = (event) => {
       cancelApproach();
+      state.panning = false;
+      state.panStart = null;
+      els.canvas.classList.remove('is-panning');
       state.dragging = true;
       state.activePointer = event.pointerId;
       els.canvas.classList.add('is-dragging');
+      els.canvas.focus({ preventScroll: true });
+      setProbeFromClientX(event.clientX);
+    };
+
+    const beginPan = (event) => {
+      cancelApproach();
+      state.dragging = false;
+      els.canvas.classList.remove('is-dragging');
+      state.panning = true;
+      state.activePointer = event.pointerId;
+      state.panStart = { x: event.clientX, y: event.clientY };
+      els.canvas.classList.add('is-panning');
+      els.canvas.focus({ preventScroll: true });
+    };
+
+    const endPan = () => {
+      if (!state.panning) return;
+      state.panning = false;
+      state.panStart = null;
+      state.activePointer = undefined;
+      els.canvas.classList.remove('is-panning');
+    };
+
+    const touchPoints = () => Array.from(state.pointers.values())
+      .filter((pointer) => pointer.type !== 'mouse')
+      .slice(0, 2);
+
+    const startPinch = (points) => {
+      const [a, b] = points;
+      const bounds = els.canvas.getBoundingClientRect();
+      const rect = plotRect();
+      const centerX = (a.x + b.x) / 2;
+      const centerY = (a.y + b.y) / 2;
+      const localX = centerX - bounds.left;
+      const localY = centerY - bounds.top;
+      state.dragging = false;
+      endPan();
+      els.canvas.classList.remove('is-dragging');
+      state.pinch = {
+        startDist: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)),
+        startSpanX: state.view.xMax - state.view.xMin,
+        startSpanY: state.view.yMax - state.view.yMin,
+        anchorX: pixelToX(localX, rect),
+        anchorY: pixelToY(localY, rect),
+        rect: rect
+      };
+      markZooming();
+    };
+
+    const movePinch = () => {
+      const pinch = state.pinch;
+      const points = touchPoints();
+      if (!pinch || points.length < 2) return;
+      const [a, b] = points;
+      const bounds = els.canvas.getBoundingClientRect();
+      const localX = (a.x + b.x) / 2 - bounds.left;
+      const localY = (a.y + b.y) / 2 - bounds.top;
+      const distance = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
+      const scale = viewSpanLimits(pinch.startSpanX, pinch.startSpanY, pinch.startDist / distance);
+      const spanX = pinch.startSpanX * scale;
+      const spanY = pinch.startSpanY * scale;
+      const rect = pinch.rect;
+      state.view = {
+        xMin: pinch.anchorX - (localX - rect.x) / rect.w * spanX,
+        xMax: pinch.anchorX + (rect.x + rect.w - localX) / rect.w * spanX,
+        yMin: pinch.anchorY - (rect.y + rect.h - localY) / rect.h * spanY,
+        yMax: pinch.anchorY + (localY - rect.y) / rect.h * spanY
+      };
+      state.viewTouched = true;
+      updatePlotChrome();
+      scheduleRender();
+    };
+
+    els.canvas.addEventListener('pointerdown', (event) => {
+      if (!state.generated) return;
+      if (event.pointerType === 'mouse' && event.button > 2) return;
+      event.preventDefault();
+      state.pointers.set(event.pointerId, {
+        id: event.pointerId,
+        x: event.clientX,
+        y: event.clientY,
+        type: event.pointerType
+      });
       if (typeof els.canvas.setPointerCapture === 'function') {
         try {
           els.canvas.setPointerCapture(event.pointerId);
@@ -3192,24 +3383,133 @@
           /* capture is a progressive enhancement */
         }
       }
-      els.canvas.focus({ preventScroll: true });
-      setProbeFromClientX(event.clientX);
+
+      const touches = touchPoints();
+      if (state.pointers.size >= 2 && touches.length >= 2) {
+        startPinch(touches);
+        return;
+      }
+
+      const mouse = event.pointerType === 'mouse';
+      const wantsPan = mouse
+        ? event.shiftKey || event.button !== 0
+        : !isProbeMode();
+      if (wantsPan) beginPan(event);
+      else beginProbe(event);
     });
 
     els.canvas.addEventListener('pointermove', (event) => {
-      if (!state.dragging || event.pointerId !== state.activePointer) return;
-      event.preventDefault();
-      setProbeFromClientX(event.clientX);
+      const tracked = state.pointers.get(event.pointerId);
+      if (tracked) {
+        tracked.x = event.clientX;
+        tracked.y = event.clientY;
+      }
+
+      if (state.pinch) {
+        if (event.pointerType !== 'mouse' && state.pointers.size >= 2) {
+          event.preventDefault();
+          movePinch();
+        }
+        return;
+      }
+
+      if (state.dragging && event.pointerId === state.activePointer) {
+        event.preventDefault();
+        setProbeFromClientX(event.clientX);
+        return;
+      }
+
+      if (state.panning && event.pointerId === state.activePointer && state.panStart) {
+        event.preventDefault();
+        const dx = event.clientX - state.panStart.x;
+        const dy = event.clientY - state.panStart.y;
+        state.panStart = { x: event.clientX, y: event.clientY };
+        panByPixels(dx, dy);
+      }
     });
 
-    els.canvas.addEventListener('pointerup', endDrag);
-    els.canvas.addEventListener('pointercancel', endDrag);
-    els.canvas.addEventListener('lostpointercapture', () => {
+    const releasePointer = (event) => {
+      state.pointers.delete(event.pointerId);
+      if (typeof els.canvas.releasePointerCapture === 'function') {
+        try {
+          if (els.canvas.hasPointerCapture(event.pointerId)) els.canvas.releasePointerCapture(event.pointerId);
+        } catch (error) {
+          /* pointer capture may already be released */
+        }
+      }
+
+      if (state.pinch) {
+        if (touchPoints().length < 2) {
+          state.pinch = null;
+          const remaining = touchPoints()[0];
+          if (remaining) {
+            state.panning = true;
+            state.activePointer = remaining.id;
+            state.panStart = { x: remaining.x, y: remaining.y };
+            els.canvas.classList.add('is-panning');
+          }
+        }
+        return;
+      }
+
+      if (state.dragging) endDrag(event);
+      if (state.panning && event.pointerId === state.activePointer) endPan();
+    };
+
+    els.canvas.addEventListener('pointerup', releasePointer);
+    els.canvas.addEventListener('pointercancel', releasePointer);
+    els.canvas.addEventListener('lostpointercapture', (event) => {
+      state.pointers.delete(event.pointerId);
+      if (state.pinch && touchPoints().length < 2) state.pinch = null;
       if (state.dragging) endDrag();
+      if (state.panning) endPan();
     });
+
+    els.canvas.addEventListener('contextmenu', (event) => {
+      if (state.generated) event.preventDefault();
+    });
+
+    els.canvas.addEventListener('wheel', (event) => {
+      if (!state.generated) return;
+      event.preventDefault();
+      const bounds = els.canvas.getBoundingClientRect();
+      const localX = event.clientX - bounds.left;
+      const localY = event.clientY - bounds.top;
+      const delta = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaY;
+      const factor = Math.exp(clamp(delta, -240, 240) * 0.0016);
+      zoomAtPoint(factor, localX, localY);
+    }, { passive: false });
+
+    els.canvas.addEventListener('dblclick', (event) => {
+      if (!state.generated) return;
+      event.preventDefault();
+      resetPlotView();
+    });
+
+    els.zoomIn.addEventListener('click', () => stepPlotZoom(1));
+    els.zoomOut.addEventListener('click', () => stepPlotZoom(-1));
+    els.zoomReset.addEventListener('click', resetPlotView);
 
     els.canvas.addEventListener('keydown', (event) => {
-      if (!state.generated || (state.mode !== 'limit' && state.mode !== 'derivative')) return;
+      if (!state.generated) return;
+
+      if (event.key === '+' || event.key === '=' || event.key === 'Add') {
+        event.preventDefault();
+        stepPlotZoom(1);
+        return;
+      }
+      if (event.key === '-' || event.key === '_' || event.key === 'Subtract') {
+        event.preventDefault();
+        stepPlotZoom(-1);
+        return;
+      }
+      if (event.key === '0') {
+        event.preventDefault();
+        resetPlotView();
+        return;
+      }
+
+      if (state.mode !== 'limit' && state.mode !== 'derivative') return;
       if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
       event.preventDefault();
       cancelApproach();

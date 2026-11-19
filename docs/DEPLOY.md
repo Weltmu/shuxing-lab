@@ -9,6 +9,7 @@
 | 域名 | `math.astroswarm.cn` |
 | 服务器 | `112.124.11.144`（Ubuntu 22.04） |
 | 站点目录 | `/opt/shuxing-lab/web` |
+| AI 目录 | `/opt/shuxing-lab/ai`（代理 + 自包含 Node） |
 | Nginx 配置 | `/etc/nginx/sites-available/math.astroswarm.cn.conf`（仓库内 `deploy/math.astroswarm.cn.conf`） |
 | 证书 | Let's Encrypt `math.astroswarm.cn`（webroot：`/var/www/letsencrypt`） |
 | GitHub | <https://github.com/Weltmu/shuxing-lab> |
@@ -45,11 +46,27 @@ curl -sS -o /dev/null -w 'music=%{http_code}\n' https://music.astroswarm.cn/
 nginx -t
 ```
 
-## 问 AI 说明
+## 问 AI 服务
 
-当前 Nginx 站点是纯静态托管，没有 `/api/ai/ask`。AI 入口会显示“AI 暂时没回应，稍后再试”，不影响其余功能。
+AI 由服务器上的 Node 代理提供，密钥只在服务端：
 
-正式接入时在 Qoder Sites 创建同名 Server Function，密钥只写入服务端环境变量；接口约定见 `docs/AI_BACKEND.md`。不要把密钥写进静态站或 Git。
+| 项 | 值 |
+| --- | --- |
+| 代理代码 | `/opt/shuxing-lab/ai/ai-proxy.js` |
+| Node 运行时 | `/opt/shuxing-lab/ai/runtime/bin/node` |
+| systemd | `shuxing-ai.service`（`127.0.0.1:8787`） |
+| 密钥文件 | `/etc/shuxing-lab/ai.env`（600，仓库无真实密钥） |
+| 健康检查 | `curl -sS http://127.0.0.1:8787/healthz` |
+| 线上接口 | `POST https://math.astroswarm.cn/api/ai/ask` |
+
+未配置密钥时接口返回 503，前端显示“AI 暂时没回应，稍后再试”，其余功能不受影响。设置密钥与更新代理的步骤见 `docs/AI_BACKEND.md`。
+
+更新代理代码：
+
+```bash
+scp server/ai-proxy.js root@112.124.11.144:/opt/shuxing-lab/ai/ai-proxy.js
+ssh root@112.124.11.144 'systemctl restart shuxing-ai && curl -sS http://127.0.0.1:8787/healthz'
+```
 
 ## 回滚
 

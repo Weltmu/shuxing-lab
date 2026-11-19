@@ -781,6 +781,60 @@ main {
   white-space: nowrap;
 }
 
+.plot-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+.zoom-group {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .025);
+}
+
+.zoom-btn {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color .18s ease, background-color .18s ease, transform .18s ease;
+}
+
+.zoom-btn:hover {
+  color: var(--ink);
+  background: rgba(255, 255, 255, .07);
+}
+
+.zoom-btn:active {
+  transform: scale(.9);
+}
+
+.zoom-btn:disabled {
+  color: var(--faint);
+  opacity: .38;
+  cursor: default;
+  transform: none;
+  background: transparent;
+}
+
+.zoom-btn--reset {
+  font-size: 13px;
+}
+
 .canvas-shell {
   position: relative;
   width: 100%;
@@ -788,15 +842,41 @@ main {
   background: var(--plot);
 }
 
+.canvas-zoom-tip {
+  position: absolute;
+  right: 15px;
+  bottom: 9px;
+  margin: 0;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: .02em;
+  pointer-events: none;
+  opacity: .72;
+  transition: opacity .3s ease;
+}
+
+.canvas-shell.is-zooming .canvas-zoom-tip {
+  opacity: 0;
+}
+
 #plot-canvas {
   display: block;
   width: 100%;
   height: 100%;
-  touch-action: pan-y;
+  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   cursor: default;
+}
+
+.canvas-shell.is-zoomable #plot-canvas {
+  cursor: grab;
+}
+
+.canvas-shell.is-zoomable #plot-canvas.is-panning {
+  cursor: grabbing;
 }
 
 .canvas-shell.is-draggable #plot-canvas {
@@ -2758,6 +2838,20 @@ body.sheet-open {
     font-size: 8px;
   }
 
+  .zoom-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 15px;
+  }
+
+  .zoom-btn--reset {
+    font-size: 14px;
+  }
+
+  .canvas-zoom-tip {
+    display: none;
+  }
+
   .canvas-shell {
     height: clamp(330px, 88vw, 430px);
   }
@@ -2905,6 +2999,10 @@ body.sheet-open {
 }
 
 @media (max-width: 380px) {
+  .plot-scale {
+    display: none;
+  }
+
   .mode-tab small {
     display: none;
   }
