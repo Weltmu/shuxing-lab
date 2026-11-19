@@ -2115,6 +2115,7 @@ main {
 .practice-sheet {
   overflow-y: auto;
   overscroll-behavior: contain;
+  background: #101114;
 }
 
 .practice-tabs {
