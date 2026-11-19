@@ -2063,6 +2063,12 @@
   function extractAiText(payload) {
     if (typeof payload === 'string') return payload;
     if (!payload || typeof payload !== 'object') return '';
+    if (Array.isArray(payload.choices) && payload.choices.length) {
+      const choice = payload.choices[0] || {};
+      if (choice.delta && typeof choice.delta.content === 'string') return choice.delta.content;
+      if (choice.message && typeof choice.message.content === 'string') return choice.message.content;
+    }
+    if (payload.delta && typeof payload.delta === 'object' && typeof payload.delta.content === 'string') return payload.delta.content;
     if (typeof payload.delta === 'string') return payload.delta;
     if (typeof payload.token === 'string') return payload.token;
     if (typeof payload.text === 'string') return payload.text;
