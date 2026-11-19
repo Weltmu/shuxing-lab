@@ -120,7 +120,9 @@
 
   const ALLOWED_FUNCTIONS = new Set([
     'sin', 'cos', 'tan', 'asin', 'acos', 'atan',
+    'sec', 'csc', 'cot', 'asec', 'acsc', 'acot',
     'sinh', 'cosh', 'tanh', 'asinh', 'acosh', 'atanh',
+    'sech', 'csch', 'coth', 'asech', 'acsch', 'acoth',
     'sqrt', 'cbrt', 'abs', 'exp', 'log', 'log10', 'log2',
     'floor', 'ceil', 'round', 'sign', 'min', 'max',
     'pow', 'nthRoot', 'hypot', 'atan2', 'mod', 'gcd', 'lcm'
@@ -267,14 +269,14 @@
     );
     // Function with a numeric factor directly before x: sin2x -> sin(2x), cos0.5x -> cos(0.5x).
     source = source.replace(
-      /(^|[^A-Za-z_])(arcsinh|arccosh|arctanh|arcsin|arccos|arctan|arsinh|arcosh|artanh|asinh|acosh|atanh|asin|acos|atan|sinh|cosh|tanh|sin|cos|tan|sqrt|exp|ln)\s*(\d+(?:\.\d+)?)\s*x\b/gi,
+      /(^|[^A-Za-z_])(arcsinh|arccosh|arctanh|arcsin|arccos|arctan|arsinh|arcosh|artanh|asech|acsch|acoth|asinh|acosh|atanh|asec|acsc|acot|sech|csch|coth|sinh|cosh|tanh|sin|cos|tan|sec|csc|cot|sqrt|exp|ln)\s*(\d+(?:\.\d+)?)\s*x\b/gi,
       (match, lead, name, factor) => {
         const key = name.toLowerCase();
         return `${lead}${ALIASES[key] || key}(${factor}x)`;
       }
     );
     source = source.replace(
-      /(^|[^A-Za-z_])(arcsinh|arccosh|arctanh|arcsin|arccos|arctan|arsinh|arcosh|artanh|asinh|acosh|atanh|asin|acos|atan|sinh|cosh|tanh|sin|cos|tan|sqrt|exp|ln|log)\s*x\b/gi,
+      /(^|[^A-Za-z_])(arcsinh|arccosh|arctanh|arcsin|arccos|arctan|arsinh|arcosh|artanh|asech|acsch|acoth|asinh|acosh|atanh|asec|acsc|acot|sech|csch|coth|sinh|cosh|tanh|sin|cos|tan|sec|csc|cot|sqrt|exp|ln|log)\s*x\b/gi,
       (match, lead, name) => {
         const key = name.toLowerCase();
         return `${lead}${ALIASES[key] || key}(x)`;
