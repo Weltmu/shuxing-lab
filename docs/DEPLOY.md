@@ -9,7 +9,7 @@
 | 域名 | `math.astroswarm.cn` |
 | 服务器 | `112.124.11.144`（Ubuntu 22.04） |
 | 站点目录 | `/opt/shuxing-lab/web` |
-| Nginx 配置 | `/etc/nginx/sites-available/math.astroswarm.cn.conf` |
+| Nginx 配置 | `/etc/nginx/sites-available/math.astroswarm.cn.conf`（仓库内 `deploy/math.astroswarm.cn.conf`） |
 | 证书 | Let's Encrypt `math.astroswarm.cn`（webroot：`/var/www/letsencrypt`） |
 | GitHub | <https://github.com/Weltmu/shuxing-lab> |
 
