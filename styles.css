@@ -1542,6 +1542,24 @@ main {
   gap: 7px 9px;
 }
 
+.formula-tex {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.formula-tex .katex-display {
+  margin: 0;
+}
+
+.formula-poly {
+  white-space: normal;
+}
+
+.formula-poly .katex {
+  font-size: 1.02em;
+}
+
 .formula-main strong {
   color: var(--accent);
   font-size: 23px;
@@ -1782,6 +1800,544 @@ main {
   border-bottom: 0;
 }
 
+/* ═══════════════════════════ Lab tools ═══════════════════════════ */
+
+.lab-head-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.lab-tools {
+  display: flex;
+  gap: 8px;
+}
+
+.tool-btn {
+  --glass-blur: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 10.5px;
+  font-weight: 560;
+}
+
+.tool-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px rgba(255, 106, 61, .6);
+}
+
+.panel-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 7px;
+}
+
+.ask-mini {
+  padding: 4px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .025);
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: .04em;
+  transition: color .2s ease, border-color .2s ease, background-color .2s ease;
+}
+
+.ask-mini:hover {
+  border-color: rgba(255, 255, 255, .2);
+  background: rgba(255, 255, 255, .05);
+  color: var(--ink);
+}
+
+/* ═══════════════════════════ Sheets ═══════════════════════════ */
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(4, 5, 6, .66);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+}
+
+.sheet-backdrop:not([hidden]) {
+  animation: backdrop-in .24s ease both;
+}
+
+.sheet {
+  position: fixed;
+  z-index: 90;
+  top: calc(73px + 14px);
+  right: max(14px, calc((100vw - 1460px) / 2 + 14px));
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  width: min(404px, calc(100vw - 28px));
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 60% at 100% 0%, rgba(92, 140, 255, .07), transparent 55%),
+    linear-gradient(180deg, rgba(20, 21, 24, .98), rgba(12, 13, 15, .99));
+  box-shadow: 0 34px 90px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255, 255, 255, .06);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(26px);
+  transition: opacity .24s ease, transform .35s cubic-bezier(.18, .9, .22, 1), visibility 0s linear .35s;
+}
+
+.sheet.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: none;
+  transition: opacity .24s ease, transform .35s cubic-bezier(.18, .9, .22, 1), visibility 0s;
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.sheet-kicker {
+  display: block;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 7.5px;
+  letter-spacing: .18em;
+}
+
+.sheet-head h2 {
+  margin: 3px 0 0;
+  font-size: 19px;
+  font-weight: 620;
+  letter-spacing: -.02em;
+}
+
+.sheet-close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.sheet-close:hover {
+  border-color: rgba(255, 255, 255, .2);
+  color: var(--ink);
+}
+
+/* ───────────── AI sheet ───────────── */
+
+.ai-context {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 8.5px;
+}
+
+.ai-context span {
+  flex: none;
+  padding: 2px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+}
+
+.ai-context b {
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 16px 18px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ai-empty {
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.85;
+}
+
+.ai-msg {
+  max-width: 94%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+.ai-msg p {
+  margin: 0 0 7px;
+}
+
+.ai-msg p:last-child {
+  margin-bottom: 0;
+}
+
+.ai-msg.user {
+  align-self: flex-end;
+  border: 1px solid rgba(92, 140, 255, .22);
+  background: rgba(92, 140, 255, .13);
+  color: var(--ink);
+}
+
+.ai-msg.bot {
+  align-self: flex-start;
+  border: 1px solid var(--line-soft);
+  background: rgba(255, 255, 255, .035);
+  color: var(--ink-soft);
+}
+
+.ai-msg.bot.is-error {
+  border-color: rgba(255, 106, 61, .24);
+  color: var(--accent-deep);
+}
+
+.ai-msg .katex-display {
+  margin: 7px 0;
+}
+
+.ai-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 18px 10px;
+}
+
+.ai-chips button {
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 9.5px;
+}
+
+.ai-chips button:hover {
+  border-color: rgba(255, 255, 255, .2);
+  color: var(--ink);
+}
+
+.ai-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 0 18px 8px;
+}
+
+.ai-form textarea {
+  flex: 1;
+  min-height: 42px;
+  max-height: 110px;
+  padding: 9px 11px;
+  resize: none;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  outline: none;
+  background: rgba(0, 0, 0, .34);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.ai-form textarea:focus {
+  border-color: rgba(255, 255, 255, .28);
+}
+
+.ai-send {
+  flex: none;
+  height: 40px;
+  padding: 0 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.ai-send:disabled {
+  cursor: default;
+  opacity: .5;
+}
+
+.ai-status {
+  min-height: 14px;
+  margin: 0;
+  padding: 0 18px 12px;
+  color: var(--faint);
+  font-size: 9px;
+}
+
+/* ───────────── Practice sheet ───────────── */
+
+.practice-sheet {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.practice-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 12px 18px 0;
+}
+
+.practice-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 3px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .02);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.practice-tab b {
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 7.5px;
+  font-weight: 500;
+}
+
+.practice-tab.is-active {
+  border-color: rgba(255, 255, 255, .26);
+  background: rgba(255, 255, 255, .06);
+  color: var(--ink);
+}
+
+.practice-tab.is-active b {
+  color: var(--accent);
+}
+
+.practice-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px 0;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: .03em;
+}
+
+.practice-question {
+  padding: 12px 18px 0;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.practice-question .katex-display {
+  margin: 0 0 2px;
+}
+
+.practice-ask {
+  margin: 6px 0 0;
+  color: var(--ink-soft);
+  font-family: var(--sans);
+  font-size: 11.5px;
+  line-height: 1.7;
+}
+
+body.sheet-open {
+  overflow: hidden;
+}
+
+.practice-form {
+  display: flex;
+  gap: 8px;
+  padding: 14px 18px 0;
+}
+
+.practice-form input {
+  flex: 1;
+  min-width: 0;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  outline: none;
+  background: rgba(0, 0, 0, .34);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+.practice-form input:focus {
+  border-color: rgba(255, 255, 255, .28);
+}
+
+.practice-submit {
+  flex: none;
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.practice-feedback {
+  margin: 12px 18px 0;
+  padding: 12px 13px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .03);
+  color: var(--ink-soft);
+  font-size: 11.5px;
+  line-height: 1.75;
+}
+
+.practice-feedback.is-correct {
+  border-color: rgba(92, 140, 255, .3);
+  background: rgba(92, 140, 255, .08);
+}
+
+.practice-feedback.is-wrong {
+  border-color: rgba(255, 106, 61, .26);
+  background: rgba(255, 106, 61, .07);
+}
+
+.practice-feedback .pf-title {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.practice-feedback .katex-display {
+  margin: 6px 0;
+}
+
+.practice-actions {
+  display: flex;
+  gap: 7px;
+  padding: 12px 18px 0;
+}
+
+.practice-ghost {
+  flex: 1;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.practice-ghost:hover {
+  border-color: rgba(255, 255, 255, .2);
+  color: var(--ink);
+}
+
+.practice-ghost:disabled {
+  cursor: default;
+  opacity: .4;
+}
+
+.practice-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  padding: 16px 18px;
+  border-top: 1px solid var(--line-soft);
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 8.5px;
+}
+
+.practice-reset {
+  border: 0;
+  background: transparent;
+  color: var(--faint);
+  cursor: pointer;
+  font-size: 9px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.practice-reset:hover {
+  color: var(--accent-deep);
+}
+
+/* ───────────── KaTeX guards ───────────── */
+
+.katex {
+  font-size: 1.04em;
+}
+
+.katex-display {
+  max-width: 100%;
+  margin: 4px 0;
+  padding: 1px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.katex-display::-webkit-scrollbar {
+  height: 3px;
+}
+
+.katex-display::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, .14);
+  border-radius: 3px;
+}
+
+.tex-fallback {
+  font-family: var(--mono);
+  font-size: .92em;
+}
+
 .lab-foot {
   display: flex;
   align-items: center;
@@ -1866,6 +2422,16 @@ main {
 @keyframes view-in {
   from { opacity: 0; transform: translateY(10px) scale(.996); }
   to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sheet-rise {
+  from { opacity: 0; transform: translateY(26px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ═══════════════════════════ Responsive ═══════════════════════════ */
@@ -2019,6 +2585,112 @@ main {
     margin: 0;
     font-size: 11px;
     text-align: left;
+  }
+
+  .lab-head-side {
+    align-items: flex-start;
+    width: 100%;
+    gap: 9px;
+  }
+
+  .lab-tools {
+    width: 100%;
+  }
+
+  .tool-btn {
+    flex: 1;
+    justify-content: center;
+    height: 34px;
+  }
+
+  .panel-side {
+    gap: 5px;
+  }
+
+  .ask-mini {
+    padding: 3px 8px;
+    font-size: 7.5px;
+  }
+
+  .sheet {
+    top: auto;
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    width: auto;
+    max-height: 86svh;
+    border-radius: 20px;
+    transform: translateY(30px);
+  }
+
+  .sheet.is-open {
+    transform: none;
+    animation: sheet-rise .32s cubic-bezier(.18, .9, .22, 1) both;
+  }
+
+  .ai-sheet {
+    height: min(78svh, 640px);
+  }
+
+  .practice-sheet {
+    max-height: 88svh;
+  }
+
+  .sheet-head {
+    padding: 13px 15px;
+  }
+
+  .sheet-head h2 {
+    font-size: 17px;
+  }
+
+  .ai-context {
+    padding: 8px 15px;
+  }
+
+  .ai-messages {
+    padding: 13px 15px;
+  }
+
+  .ai-chips {
+    padding: 0 15px 9px;
+  }
+
+  .ai-form {
+    padding: 0 15px 7px;
+  }
+
+  .ai-status {
+    padding: 0 15px 10px;
+  }
+
+  .practice-tabs {
+    padding: 10px 15px 0;
+  }
+
+  .practice-meta {
+    padding: 13px 15px 0;
+  }
+
+  .practice-question {
+    padding: 10px 15px 0;
+    font-size: 13px;
+  }
+
+  .practice-form {
+    padding: 12px 15px 0;
+  }
+
+  .practice-feedback {
+    margin: 10px 15px 0;
+  }
+
+  .practice-actions {
+    padding: 10px 15px 0;
+  }
+
+  .practice-foot {
+    padding: 13px 15px;
   }
 
   .fn-form {

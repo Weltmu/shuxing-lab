@@ -45,6 +45,12 @@ curl -sS -o /dev/null -w 'music=%{http_code}\n' https://music.astroswarm.cn/
 nginx -t
 ```
 
+## 问 AI 说明
+
+当前 Nginx 站点是纯静态托管，没有 `/api/ai/ask`。AI 入口会显示“AI 暂时没回应，稍后再试”，不影响其余功能。
+
+正式接入时在 Qoder Sites 创建同名 Server Function，密钥只写入服务端环境变量；接口约定见 `docs/AI_BACKEND.md`。不要把密钥写进静态站或 Git。
+
 ## 回滚
 
 ```bash

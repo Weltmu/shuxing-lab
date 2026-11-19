@@ -75,7 +75,45 @@
     intFormula: $('int-formula'),
 
     deriveMode: $('derive-mode'),
-    deriveSteps: $('derive-steps')
+    deriveSteps: $('derive-steps'),
+
+    practiceOpen: $('practice-open'),
+    aiOpen: $('ai-open'),
+    askMinis: Array.from(document.querySelectorAll('.ask-mini')),
+    backdrop: $('sheet-backdrop'),
+
+    aiSheet: $('ai-sheet'),
+    aiClose: $('ai-close'),
+    aiContext: $('ai-context'),
+    aiMessages: $('ai-messages'),
+    aiEmpty: $('ai-empty'),
+    aiChips: $('ai-chips'),
+    aiForm: $('ai-form'),
+    aiInput: $('ai-input'),
+    aiSend: $('ai-send'),
+    aiStatus: $('ai-status'),
+
+    practiceSheet: $('practice-sheet'),
+    practiceClose: $('practice-close'),
+    practiceTabs: Array.from(document.querySelectorAll('.practice-tab')),
+    practiceIndex: $('practice-index'),
+    practiceTag: $('practice-tag'),
+    practiceQuestion: $('practice-question'),
+    practiceForm: $('practice-form'),
+    practiceAnswer: $('practice-answer'),
+    practiceSubmit: $('practice-submit'),
+    practiceFeedback: $('practice-feedback'),
+    practiceHint: $('practice-hint'),
+    practiceNext: $('practice-next'),
+    practiceAI: $('practice-ai'),
+    practiceTotal: $('practice-total'),
+    practiceReset: $('practice-reset'),
+    progressBadges: {
+      limit: $('p-progress-limit'),
+      derivative: $('p-progress-derivative'),
+      taylor: $('p-progress-taylor'),
+      integral: $('p-progress-integral')
+    }
   };
 
   const ctx = els.canvas.getContext('2d');
@@ -120,7 +158,14 @@
     dpr: 1,
     renderRaf: 0,
     approachRaf: 0,
-    approachToken: 0
+    approachToken: 0,
+    sheet: '',
+    sheetReturnFocus: null,
+    aiBusy: false,
+    aiAbort: null,
+    aiContextMode: 'limit',
+    practiceMode: 'limit',
+    practiceCustom: {}
   };
 
   const ALLOWED_FUNCTIONS = new Set([
@@ -166,6 +211,81 @@
 
   function prettyMinus(value) {
     return String(value).replace(/-/g, MINUS);
+  }
+
+  /* ── KaTeX rendering ── */
+
+  const KATEX_OPTIONS = {
+    throwOnError: false,
+    strict: 'ignore',
+    trust: false,
+    output: 'html',
+    errorColor: '#ff9a7a'
+  };
+
+  function tex(expression, display) {
+    const source = String(expression);
+    if (window.katex && typeof window.katex.renderToString === 'function') {
+      try {
+        return window.katex.renderToString(source, Object.assign({ displayMode: Boolean(display) }, KATEX_OPTIONS));
+      } catch (error) {
+        /* fall through to plain text */
+      }
+    }
+    return `<span class="tex-fallback">${escapeHtml(source)}</span>`;
+  }
+
+  function texInline(expression) {
+    return tex(expression, false);
+  }
+
+  function texDisplay(expression) {
+    return tex(expression, true);
+  }
+
+  // Degrees of a polynomial-style plain string → TeX (x²/2 → \frac{x^{2}}{2}).
+  function plainToTex(text) {
+    let source = String(text).trim();
+    if (!source) return '0';
+    source = source.replace(/([0-9A-Za-z⁰¹²³⁴⁵⁶⁷⁸⁹.]+)\/(\d+)/g, '\\frac{$1}{$2}');
+    source = source.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]+/g, (match) => {
+      const digits = match.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g, (digit) => '⁰¹²³⁴⁵⁶⁷⁸⁹'.indexOf(digit));
+      return `^{${digits}}`;
+    });
+    source = source.replace(/\^(\d+)/g, '^{$1}').replace(/·/g, '\\cdot ');
+    return source;
+  }
+
+  const KATEX_FUNCTIONS = new Set([
+    'sin', 'cos', 'tan', 'sec', 'csc', 'cot',
+    'sinh', 'cosh', 'tanh', 'coth',
+    'arcsin', 'arccos', 'arctan', 'ln', 'exp', 'log', 'sqrt'
+  ]);
+  const KATEX_ALIASES = { asin: 'arcsin', acos: 'arccos', atan: 'arctan' };
+  const EXPR_FUNCTION_PATTERN = /\b(arcsinh|arccosh|arctanh|arcsin|arccos|arctan|asin|acos|atan|arsinh|arcosh|artanh|asech|acsch|acoth|asinh|acosh|atanh|asec|acsc|acot|sech|csch|coth|sinh|cosh|tanh|sin|cos|tan|sec|csc|cot|sqrt|exp|ln|log10|log2|log|abs)\b/g;
+
+  function exprToTex(raw) {
+    let source = String(raw || '').trim();
+    if (!source) return '\\text{—}';
+    source = source.replace(EXPR_FUNCTION_PATTERN, (name) => {
+      const canonical = KATEX_ALIASES[name] || name;
+      return KATEX_FUNCTIONS.has(canonical) ? `\\${canonical}` : `\\operatorname{${name}}`;
+    });
+    source = source.replace(/·/g, ' \\cdot ').replace(/\*/g, ' \\cdot ');
+    source = source.replace(/\^(\d+)/g, '^{$1}');
+    return source;
+  }
+
+  function fmtTex(value, digits) {
+    const text = fmt(value, digits);
+    if (text === '无定义') return '\\text{无定义}';
+    if (text === '∞') return '\\infty';
+    if (text === `${MINUS}∞`) return '-\\infty';
+    return text
+      .replace(/^(-?)([\d.]+)e(-?\d+)$/, (match, sign, mantissa, exponent) => {
+        return `${sign === '-' ? '-' : ''}${mantissa} \\times 10^{${Number(exponent)}}`;
+      })
+      .replace(/−/g, '-');
   }
 
   function fmt(value, digits) {
@@ -1602,14 +1722,25 @@
 
   /* ───────────────────────────── Formulas ───────────────────────────── */
 
+  function limitValueTex(result) {
+    if (!result) return '\\text{—}';
+    if (result.type === 'none') return '\\text{不存在}';
+    const side = result.side === 'both' ? '' : `\\;(\\text{${result.side === 'right' ? '右' : '左'}侧})`;
+    if (result.type === 'infinite') return `${result.sign > 0 ? '' : '-'}\\infty${side}`;
+    if (result.type === 'finite') return `${fmtTex(result.value)}${side}`;
+    return '\\text{—}';
+  }
+
   function limitFormulaHtml() {
     const result = state.generated ? state.limit.result : null;
-    const value = result ? limitLabel(result) : DASH;
-    return `<div class="formula-main"><span class="lim"><span class="lim-word">lim</span><span class="lim-under">x → ${escapeHtml(fmt(state.limit.a, 4))}</span></span><span>f(x) =</span><strong>${escapeHtml(value)}</strong></div><p class="formula-note">左右两侧靠近同一个数，双侧极限才存在。</p>`;
+    const value = result ? limitValueTex(result) : '\\text{—}';
+    const body = `\\lim_{x \\to ${fmtTex(state.limit.a, 4)}} f(x) = ${value}`;
+    return `<div class="formula-tex">${texDisplay(body)}</div><p class="formula-note">左右两侧靠近同一个数，双侧极限才存在。</p>`;
   }
 
   function derivativeFormulaHtml() {
-    return `<div class="formula-main"><span>f′(x) =</span><span class="lim"><span class="lim-word">lim</span><span class="lim-under">h → 0</span></span><span class="frac"><span>f(x + h) ${MINUS} f(x)</span><span>h</span></span></div><p class="formula-note">差商在 h → 0 时的极限，就是切线的瞬时斜率。</p>`;
+    const body = "f'(x) = \\lim_{h \\to 0} \\frac{f(x + h) - f(x)}{h}";
+    return `<div class="formula-tex">${texDisplay(body)}</div><p class="formula-note">差商在 h → 0 时的极限，就是切线的瞬时斜率。</p>`;
   }
 
   function taylorFormulaHtml() {
@@ -1622,9 +1753,10 @@
     } else if (!available) {
       note = '<p class="formula-note">该函数在 x = 0 处无法展开到这一阶。</p>';
     } else {
-      note = `<p class="formula-poly">P${SUBSCRIPT[n]}(x) = ${escapeHtml(series.strings[n])}</p>`;
+      note = `<p class="formula-poly">${texInline(`P_{${n}}(x) = ${plainToTex(series.strings[n])}`)}</p>`;
     }
-    return `<div class="formula-main"><span>P${SUBSCRIPT[n]}(x) =</span><span>Σ</span><span class="frac"><span>f⁽ᵏ⁾(0)</span><span>k!</span></span><span>xᵏ</span><span class="muted">，k = 0 … ${n}</span></div>${note}`;
+    const body = `P_{${n}}(x) = \\sum_{k=0}^{${n}} \\frac{f^{(k)}(0)}{k!}\\,x^{k}`;
+    return `<div class="formula-tex">${texDisplay(body)}</div>${note}`;
   }
 
   function integralFormulaHtml() {
@@ -1632,7 +1764,9 @@
     const b = state.integral.b;
     const n = state.integral.n;
     const dx = b > a ? (b - a) / n : NaN;
-    return `<div class="formula-main"><span>∫<sub>a</sub><sup>b</sup> f(x) dx ≈</span><span>Σ</span><span>f(xᵢ*) Δx</span></div><p class="formula-note">Δx = (${escapeHtml(fmt(a, 4))} → ${escapeHtml(fmt(b, 4))}) / ${n} = ${escapeHtml(Number.isFinite(dx) ? fmt(dx) : DASH)}，取每个小区间的中点。</p>`;
+    const body = `\\int_{a}^{b} f(x)\\,dx \\approx \\sum_{i=1}^{n} f(x_i^{*})\\,\\Delta x`;
+    const dxText = Number.isFinite(dx) ? fmt(dx) : DASH;
+    return `<div class="formula-tex">${texDisplay(body)}</div><p class="formula-note">Δx = (${escapeHtml(fmt(a, 4))} → ${escapeHtml(fmt(b, 4))}) / ${n} = ${escapeHtml(dxText)}，取每个小区间的中点。</p>`;
   }
 
   function updateFormulas() {
@@ -1662,22 +1796,20 @@
     let verdict = '等待生成图像。';
     if (result) {
       if (result.type === 'finite' && result.side === 'both') {
-        verdict = `两侧都收敛到 <span class="derive-answer">${escapeHtml(fmt(result.value))}</span>，所以双侧极限存在。`;
+        verdict = `两侧都收敛到 ${texInline(fmtTex(result.value))}，所以双侧极限存在。`;
       } else if (result.type === 'infinite' && result.side === 'both') {
-        const sign = result.sign > 0 ? '∞' : `${MINUS}∞`;
-        verdict = `两侧都趋向 <span class="derive-answer">${sign}</span>，极限发散。`;
+        verdict = `两侧都趋向 ${texInline(result.sign > 0 ? '\\infty' : '-\\infty')}，极限发散。`;
       } else if (result.type === 'finite') {
-        verdict = `只有${result.side === 'right' ? '右' : '左'}侧收敛到 <span class="derive-answer">${escapeHtml(fmt(result.value))}</span>，另一侧发散，双侧极限不存在。`;
+        verdict = `只有${result.side === 'right' ? '右' : '左'}侧收敛到 ${texInline(fmtTex(result.value))}，另一侧发散，双侧极限不存在。`;
       } else if (result.type === 'infinite') {
-        const sign = result.sign > 0 ? '∞' : `${MINUS}∞`;
-        verdict = `只有${result.side === 'right' ? '右' : '左'}侧趋向 <span class="derive-answer">${sign}</span>，另一侧不同，双侧极限不存在。`;
+        verdict = `只有${result.side === 'right' ? '右' : '左'}侧趋向 ${texInline(result.sign > 0 ? '\\infty' : '-\\infty')}，另一侧不同，双侧极限不存在。`;
       } else {
         verdict = '左右两侧没有落到同一个数（或至少一侧发散），所以<span class="derive-answer">双侧极限不存在</span>。';
       }
     }
 
     return [
-      `求 <span class="derive-math">lim<sub>x→${escapeHtml(fmt(a, 4))}</sub> f(x)</span>，其中 <span class="derive-math">f(x) = ${escapeHtml(state.rawExpr)}</span>。`,
+      `求 ${texInline(`\\lim_{x \\to ${fmtTex(a, 4)}} f(x)`)}，其中 ${texInline(`f(x) = ${exprToTex(state.rawExpr)}`)}。`,
       `从左右两侧取越来越小的 h，分别计算 f(a ${MINUS} h) 与 f(a + h)：${deriveTableHtml(['h', 'f(a − h)', 'f(a + h)'], rows)}`,
       `对照两侧的趋势：${verdict}<span class="derive-note"> 极限只看靠近 a 时的趋势，与 a 点本身是否有定义无关。</span>`
     ];
@@ -1687,16 +1819,16 @@
     const x = state.probeX;
     const y = state.evalAt(x);
     const slope = derivativeAt(x);
-    const slopeText = Number.isFinite(slope) ? fmt(slope, 6) : '无定义';
+    const slopeTex = Number.isFinite(slope) ? fmtTex(slope, 6) : '\\text{无定义}';
     const symbolic = state.symbolicDeriv
-      ? `对 f(x) = ${escapeHtml(state.rawExpr)} 求导：<span class="derive-math">f′(x) = ${escapeHtml(state.symbolicDeriv)}</span>。`
-      : `这个函数无法符号求导，改用中心差分近似斜率。`;
+      ? `对 ${texInline(`f(x) = ${exprToTex(state.rawExpr)}`)} 求导：${texInline(`f'(x) = ${exprToTex(state.symbolicDeriv)}`)}。`
+      : '这个函数无法符号求导，改用中心差分近似斜率。';
 
     return [
-      `导数定义：<span class="derive-math">f′(a) = lim<sub>h→0</sub> [f(a + h) ${MINUS} f(a)] / h</span>。`,
+      `导数定义：${texInline("f'(a) = \\lim_{h \\to 0} \\frac{f(a + h) - f(a)}{h}")}。`,
       symbolic,
-      `代入当前切点 x = ${escapeHtml(fmt(x, 4))}：<span class="derive-math">f′(x) ≈ ${escapeHtml(slopeText)}</span>，函数值 <span class="derive-math">f(x) = ${escapeHtml(fmt(y, 6))}</span>。`,
-      `用点斜式写出切线：<span class="derive-math">${escapeHtml(tangentEquation(x, y, slope))}</span>。`
+      `代入当前切点 x = ${texInline(fmtTex(x, 4))}：${texInline(`f'(x) \\approx ${slopeTex}`)}，函数值 ${texInline(`f(x) = ${fmtTex(y, 6)}`)}。`,
+      `用点斜式写出切线：${texInline(plainToTex(tangentEquation(x, y, slope)))}。`
     ];
   }
 
@@ -1718,15 +1850,12 @@
 
     const original = state.evalAt(1);
     const polynomial = series.polys[n](1);
-    const errorText = Number.isFinite(original) && Number.isFinite(polynomial)
-      ? fmt(Math.abs(polynomial - original), 6)
-      : '无定义';
 
     const steps = [
-      `泰勒公式：<span class="derive-math">P${SUBSCRIPT[n]}(x) = Σ<sub>k=0</sub><sup>${n}</sup> f⁽ᵏ⁾(0) / k! · xᵏ</span>，中心固定在 x = 0。`,
+      `泰勒公式：${texInline(`P_{${n}}(x) = \\sum_{k=0}^{${n}} \\frac{f^{(k)}(0)}{k!}\\,x^{k}`)}，中心固定在 x = 0。`,
       `逐阶系数 f⁽ᵏ⁾(0) / k!：${deriveTableHtml(['k', '系数'], rows)}`,
-      `合并同类项：<span class="derive-math">P${SUBSCRIPT[n]}(x) = ${escapeHtml(series.strings[n])}</span>。`,
-      `在 x = 1 处比较：<span class="derive-math">|f(1) ${MINUS} P${SUBSCRIPT[n]}(1)| = ${escapeHtml(errorText)}</span>，阶数越高，中心附近的误差通常越小。`
+      `合并同类项：${texInline(`P_{${n}}(x) = ${plainToTex(series.strings[n])}`)}。`,
+      `在 x = 1 处比较：${texInline(`|f(1) - P_{${n}}(1)| = ${Number.isFinite(original) && Number.isFinite(polynomial) ? fmtTex(Math.abs(polynomial - original), 6) : '\\text{无定义}'}`)}，阶数越高，中心附近的误差通常越小。`
     ];
     if (series.extended) {
       steps.push('<span class="derive-note">注意：f 在 x = 0 处无定义，展开使用其连续延拓（极限值）作为常数项。</span>');
@@ -1742,14 +1871,15 @@
       fmt(rectangle.middle, 4),
       fmt(rectangle.y, 4)
     ]);
-    const exactText = Number.isFinite(data.exact) ? fmt(data.exact, 6) : '无法计算';
-    const errorText = Number.isFinite(data.error) ? fmt(data.error, 6) : '无法计算';
+    const approxTex = Number.isFinite(data.approx) ? fmtTex(data.approx, 6) : '\\text{无法计算}';
+    const exactTex = Number.isFinite(data.exact) ? fmtTex(data.exact, 6) : '\\text{无法计算}';
+    const errorTex = Number.isFinite(data.error) ? fmtTex(data.error, 6) : '\\text{无法计算}';
 
     return [
-      `把区间 [${escapeHtml(fmt(data.a, 4))}, ${escapeHtml(fmt(data.b, 4))}] 分成 n = ${data.n} 份：<span class="derive-math">Δx = (b ${MINUS} a) / n = ${escapeHtml(fmt(data.dx, 6))}</span>。`,
-      `每个小区间取中点 <span class="derive-math">xᵢ* = a + (i ${MINUS} 1/2)Δx</span>，前几个采样：${deriveTableHtml(['i', 'xᵢ*', 'f(xᵢ*)'], rows)}`,
-      `把所有矩形面积相加：<span class="derive-math">S<sub>${data.n}</sub> = Σ f(xᵢ*) · Δx ≈ <span class="derive-answer">${escapeHtml(Number.isFinite(data.approx) ? fmt(data.approx, 6) : '无法计算')}</span></span>。`,
-      `与高精度参考值 <span class="derive-math">${escapeHtml(exactText)}</span> 相比，当前误差为 <span class="derive-math">${escapeHtml(errorText)}</span>。`
+      `把区间 [${escapeHtml(fmt(data.a, 4))}, ${escapeHtml(fmt(data.b, 4))}] 分成 n = ${data.n} 份：${texInline(`\\Delta x = \\frac{b - a}{n} = ${fmtTex(data.dx, 6)}`)}。`,
+      `每个小区间取中点 ${texInline('x_i^{*} = a + \\left(i - \\frac{1}{2}\\right)\\Delta x')}，前几个采样：${deriveTableHtml(['i', 'xᵢ*', 'f(xᵢ*)'], rows)}`,
+      `把所有矩形面积相加：${texInline(`S_{${data.n}} = \\sum f(x_i^{*}) \\cdot \\Delta x \\approx ${approxTex}`)}。`,
+      `与高精度参考值 ${texInline(exactTex)} 相比，当前误差为 ${texInline(errorTex)}。`
     ];
   }
 
@@ -1771,6 +1901,743 @@
     }
 
     els.deriveSteps.innerHTML = steps.map((step) => `<li>${step}</li>`).join('');
+  }
+
+  /* ───────────────────────────── Sheets ───────────────────────────── */
+
+  const MODE_LABELS = { limit: '极限', derivative: '导数', taylor: '泰勒', integral: '积分' };
+  const AI_FAIL_TEXT = 'AI 暂时没回应，稍后再试';
+  const AI_ENDPOINT = '/api/ai/ask';
+
+  function setBodySheetLock(locked) {
+    document.body.classList.toggle('sheet-open', locked);
+  }
+
+  function openSheet(name, options) {
+    const opts = options || {};
+    const opener = document.activeElement;
+    closeSheet({ restoreFocus: false, keepBodyLock: true });
+    if (opener && typeof opener.closest === 'function' && !opener.closest('.sheet')) {
+      state.sheetReturnFocus = opener;
+    }
+    state.sheet = name;
+    els.backdrop.hidden = false;
+    setBodySheetLock(true);
+
+    const sheet = name === 'ai' ? els.aiSheet : els.practiceSheet;
+    sheet.setAttribute('aria-hidden', 'false');
+    sheet.classList.add('is-open');
+
+    if (name === 'ai') {
+      if (opts.mode) renderAiContext(opts.mode);
+      window.setTimeout(() => {
+        if (state.sheet === 'ai') els.aiInput.focus();
+      }, 260);
+    } else {
+      state.practiceMode = opts.mode && PRACTICE_QUESTIONS[opts.mode] ? opts.mode : state.practiceMode;
+      renderPractice();
+      window.setTimeout(() => {
+        if (state.sheet === 'practice') els.practiceAnswer.focus();
+      }, 260);
+    }
+  }
+
+  function closeSheet(options) {
+    const opts = options || {};
+    if (!state.sheet) return;
+    const sheet = state.sheet === 'ai' ? els.aiSheet : els.practiceSheet;
+    state.sheet = '';
+    sheet.classList.remove('is-open');
+    sheet.setAttribute('aria-hidden', 'true');
+    if (state.aiAbort) {
+      state.aiAbort.abort();
+      state.aiAbort = null;
+    }
+    state.aiBusy = false;
+    els.aiSend.disabled = false;
+    els.aiStatus.textContent = '';
+    if (!opts.keepBodyLock) setBodySheetLock(false);
+    window.setTimeout(() => {
+      if (!state.sheet) els.backdrop.hidden = true;
+    }, 260);
+    if (opts.restoreFocus !== false && state.sheetReturnFocus && typeof state.sheetReturnFocus.focus === 'function') {
+      state.sheetReturnFocus.focus({ preventScroll: true });
+    }
+    state.sheetReturnFocus = null;
+  }
+
+  /* ───────────────────────────── AI client ───────────────────────────── */
+
+  function aiExpressionLabel() {
+    if (!state.generated) return '尚未生成函数';
+    return `f(x) = ${state.rawExpr}`;
+  }
+
+  function aiContextFor(mode) {
+    const context = {
+      mode: mode,
+      modeLabel: MODE_LABELS[mode] || '',
+      function: state.generated ? state.rawExpr : '',
+      a: Number.isFinite(state.limit.a) ? state.limit.a : 0,
+      x: Number.isFinite(state.probeX) ? state.probeX : 0,
+      taylorOrder: state.taylor.n,
+      integralA: state.integral.a,
+      integralB: state.integral.b,
+      integralN: state.integral.n
+    };
+    return context;
+  }
+
+  function renderAiContext(mode) {
+    state.aiContextMode = mode || state.mode;
+    const label = MODE_LABELS[state.aiContextMode] || '函数';
+    els.aiContext.innerHTML = `<span>${escapeHtml(label)}</span><b>${escapeHtml(aiExpressionLabel())}</b>`;
+  }
+
+  // Renders AI / practice text, converting $…$ and $$…$$ into KaTeX.
+  function renderRichText(input) {
+    const source = String(input || '').trim();
+    if (!source) return '';
+    const pattern = /(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\$[^$\n]*?\$|\\\([\s\S]*?\\\))/g;
+    let html = '';
+    let cursor = 0;
+    let match = pattern.exec(source);
+    const plain = (text) => {
+      let escaped = escapeHtml(text);
+      escaped = escaped
+        .replace(/^\s*[-*]\s+/gm, '• ')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      return escaped.replace(/\n{2,}/g, '<br><br>').replace(/\n/g, '<br>');
+    };
+    while (match) {
+      html += plain(source.slice(cursor, match.index));
+      const token = match[0];
+      let body = token;
+      let display = false;
+      if (token.startsWith('$$')) {
+        display = true;
+        body = token.slice(2, -2);
+      } else if (token.startsWith('\\[')) {
+        display = true;
+        body = token.slice(2, -2);
+      } else if (token.startsWith('$')) {
+        body = token.slice(1, -1);
+      } else {
+        body = token.slice(2, -2);
+      }
+      html += tex(body, display);
+      cursor = match.index + token.length;
+      match = pattern.exec(source);
+    }
+    html += plain(source.slice(cursor));
+    return html;
+  }
+
+  function aiScrollToBottom() {
+    els.aiMessages.scrollTop = els.aiMessages.scrollHeight;
+  }
+
+  function appendAiBubble(role, text) {
+    if (els.aiEmpty && els.aiEmpty.parentNode) els.aiEmpty.remove();
+    const bubble = document.createElement('div');
+    bubble.className = `ai-msg ${role}`;
+    if (role === 'bot') {
+      if (text) bubble.innerHTML = renderRichText(text);
+    } else {
+      bubble.textContent = text;
+    }
+    els.aiMessages.appendChild(bubble);
+    aiScrollToBottom();
+    return bubble;
+  }
+
+  function failAi(bubble) {
+    if (bubble) {
+      bubble.classList.add('is-error');
+      bubble.textContent = AI_FAIL_TEXT;
+    }
+    els.aiStatus.textContent = '';
+    aiScrollToBottom();
+  }
+
+  function extractAiText(payload) {
+    if (typeof payload === 'string') return payload;
+    if (!payload || typeof payload !== 'object') return '';
+    if (typeof payload.delta === 'string') return payload.delta;
+    if (typeof payload.token === 'string') return payload.token;
+    if (typeof payload.text === 'string') return payload.text;
+    if (typeof payload.content === 'string') return payload.content;
+    if (typeof payload.answer === 'string') return payload.answer;
+    return '';
+  }
+
+  async function streamAiAnswer(question, mode, bubble) {
+    const controller = new AbortController();
+    state.aiAbort = controller;
+    let timedOut = false;
+    const timer = window.setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, 25000);
+    let answer = '';
+
+    const consumePayload = (payload) => {
+      const piece = extractAiText(payload);
+      if (!piece) return;
+      answer += piece;
+      bubble.textContent = answer;
+      aiScrollToBottom();
+    };
+
+    try {
+      const response = await fetch(AI_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: question,
+          mode: mode,
+          context: aiContextFor(mode)
+        }),
+        signal: controller.signal
+      });
+      if (!response.ok) throw new Error(`http ${response.status}`);
+
+      const contentType = response.headers.get('content-type') || '';
+      if (response.body && contentType.includes('text/event-stream')) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let done = false;
+        while (!done) {
+          const chunk = await reader.read();
+          done = chunk.done;
+          if (chunk.value) buffer += decoder.decode(chunk.value, { stream: true });
+          let newline = buffer.indexOf('\n');
+          while (newline >= 0) {
+            const rawLine = buffer.slice(0, newline).trim();
+            buffer = buffer.slice(newline + 1);
+            if (rawLine.startsWith('data:')) {
+              const payload = rawLine.slice(5).trim();
+              if (payload && payload !== '[DONE]') {
+                try {
+                  consumePayload(JSON.parse(payload));
+                } catch (error) {
+                  if (!payload.startsWith('{') && !payload.startsWith('[')) consumePayload(payload);
+                }
+              }
+            }
+            newline = buffer.indexOf('\n');
+          }
+        }
+        if (buffer.trim().startsWith('data:')) {
+          const payload = buffer.trim().slice(5).trim();
+          if (payload && payload !== '[DONE]') {
+            try {
+              consumePayload(JSON.parse(payload));
+            } catch (error) {
+              if (!payload.startsWith('{') && !payload.startsWith('[')) consumePayload(payload);
+            }
+          }
+        }
+      } else {
+        const payload = await response.json();
+        consumePayload(payload);
+      }
+
+      if (!answer.trim()) throw new Error('empty');
+      bubble.innerHTML = renderRichText(answer);
+      aiScrollToBottom();
+    } catch (error) {
+      if (state.sheet === 'ai') failAi(bubble);
+      if (timedOut) {
+        console.warn('AI request timed out');
+      }
+    } finally {
+      window.clearTimeout(timer);
+      if (state.aiAbort === controller) state.aiAbort = null;
+      state.aiBusy = false;
+      els.aiSend.disabled = false;
+      if (state.sheet === 'ai') els.aiStatus.textContent = '';
+    }
+  }
+
+  function submitAiQuestion(rawQuestion) {
+    const question = String(rawQuestion || '').trim();
+    if (!question || state.aiBusy) return;
+    state.aiBusy = true;
+    els.aiSend.disabled = true;
+    els.aiStatus.textContent = '正在思考…';
+    appendAiBubble('user', question);
+    const bubble = appendAiBubble('bot', '');
+    bubble.textContent = '…';
+    els.aiInput.value = '';
+    streamAiAnswer(question, state.aiContextMode || state.mode, bubble);
+  }
+
+  // Non-streaming request used by the practice sheet (silent fallback).
+  async function fetchAiPracticeQuestion(mode) {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 9000);
+    try {
+      const response = await fetch(AI_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          task: 'practice',
+          question: '请出一道与该模块相关、难度相近的新题，只返回 JSON。',
+          mode: mode,
+          context: aiContextFor(mode)
+        }),
+        signal: controller.signal
+      });
+      if (!response.ok) return null;
+      let text = '';
+      if (response.body && (response.headers.get('content-type') || '').includes('text/event-stream')) {
+        const raw = await response.text();
+        raw.split('\n').forEach((line) => {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data:')) return;
+          const payload = trimmed.slice(5).trim();
+          if (!payload || payload === '[DONE]') return;
+          try {
+            text += extractAiText(JSON.parse(payload));
+          } catch (error) {
+            text += payload;
+          }
+        });
+      } else {
+        const payload = await response.json();
+        text = extractAiText(payload);
+      }
+      const match = text.match(/\{[\s\S]*\}/);
+      if (!match) return null;
+      const parsed = JSON.parse(match[0]);
+      if (!parsed || !parsed.question || parsed.answer === undefined) return null;
+      return {
+        prompt: String(parsed.question),
+        ask: '请作答。',
+        answers: [String(parsed.answer)],
+        answerTex: String(parsed.answerTex || parsed.answer),
+        hint: String(parsed.hint || '先回忆这一模块的定义，再逐步代入。'),
+        explain: String(parsed.explanation || ''),
+        ai: true
+      };
+    } catch (error) {
+      return null;
+    } finally {
+      window.clearTimeout(timer);
+    }
+  }
+
+  /* ───────────────────────────── Practice ───────────────────────────── */
+
+  const PRACTICE_KEY = 'shuxing-lab-practice-v1';
+  const PRACTICE_TEX = { frac12: '\\frac{1}{2}', frac16: '-\\frac{1}{6}', frac23: '\\frac{8}{3}' };
+
+  const PRACTICE_QUESTIONS = {
+    limit: [
+      {
+        prompt: '\\lim_{x \\to 2} \\frac{x^2 - 4}{x - 2}',
+        ask: '求这个极限。',
+        answers: ['4'],
+        answerTex: '4',
+        hint: '先把 x² − 4 分解为 (x − 2)(x + 2)，再约去公因子。',
+        explain: 'x ≠ 2 时，$\\frac{(x-2)(x+2)}{x-2} = x+2$，令 x → 2 得到 $4$。'
+      },
+      {
+        prompt: '\\lim_{x \\to 0} \\frac{\\sin x}{x}',
+        ask: '求这个极限。',
+        answers: ['1'],
+        answerTex: '1',
+        hint: '这是第一个重要极限；也可以用 sin x 的泰勒展开看。',
+        explain: '由重要极限 $\\lim_{x\\to0}\\frac{\\sin x}{x}=1$；从展开 $\\sin x = x - \\frac{x^3}{6}+\\cdots$ 也能看出。'
+      },
+      {
+        prompt: '\\lim_{x \\to 0} \\frac{1 - \\cos x}{x^2}',
+        ask: '求这个极限。',
+        answers: ['1/2', '0.5'],
+        answerTex: PRACTICE_TEX.frac12,
+        hint: '用 1 − cos x = 2 sin²(x/2)，再借用 sin x / x 的极限。',
+        explain: '$1-\\cos x \\sim \\frac{x^2}{2}$，所以极限是 $\\frac{1}{2}$。'
+      },
+      {
+        prompt: '\\lim_{x \\to \\infty} \\frac{3x^2 + 2x}{x^2 - 1}',
+        ask: '求这个极限。',
+        answers: ['3'],
+        answerTex: '3',
+        hint: '分子分母同时除以 x²，再让 1/x 与 1/x² 趋于 0。',
+        explain: '分子分母同除以 $x^2$：$\\frac{3+2/x}{1-1/x^2}\\to 3$。'
+      },
+      {
+        prompt: '\\lim_{x \\to 1} \\frac{x^3 - 1}{x - 1}',
+        ask: '求这个极限。',
+        answers: ['3'],
+        answerTex: '3',
+        hint: '用立方差公式 x³ − 1 = (x − 1)(x² + x + 1)。',
+        explain: '约去 $(x-1)$ 后得到 $x^2+x+1$，代入 $x=1$ 得 $3$。'
+      },
+      {
+        prompt: '\\lim_{x \\to 0} \\frac{e^x - 1}{x}',
+        ask: '求这个极限。',
+        answers: ['1'],
+        answerTex: '1',
+        hint: '这是 e^x 在 0 处的导数定义，或使用展开 e^x = 1 + x + x²/2 + …。',
+        explain: '$(e^x-1)/x \\to 1$，因为 $e^x$ 在 $x=0$ 处的切线斜率为 $1$。'
+      }
+    ],
+    derivative: [
+      {
+        prompt: "f(x) = x^3，求 f'(2)",
+        ask: '求切线斜率。',
+        answers: ['12'],
+        answerTex: '12',
+        hint: '先求导：f′(x) = 3x²。',
+        explain: "$f'(x)=3x^2$，所以 $f'(2)=12$。"
+      },
+      {
+        prompt: "f(x) = \\sin x，求 f'(0)",
+        ask: '求切线斜率。',
+        answers: ['1'],
+        answerTex: '1',
+        hint: 'sin x 的导数是 cos x。',
+        explain: "$f'(x)=\\cos x$，$f'(0)=\\cos 0=1$。"
+      },
+      {
+        prompt: "f(x) = e^x，求 f'(0)",
+        ask: '求切线斜率。',
+        answers: ['1'],
+        answerTex: '1',
+        hint: 'e^x 的导数仍是 e^x。',
+        explain: "$f'(x)=e^x$，$f'(0)=e^0=1$。"
+      },
+      {
+        prompt: "f(x) = \\ln x，求 f'(1)",
+        ask: '求切线斜率。',
+        answers: ['1'],
+        answerTex: '1',
+        hint: 'ln x 的导数是 1/x。',
+        explain: "$f'(x)=\\frac{1}{x}$，所以 $f'(1)=1$。"
+      },
+      {
+        prompt: "f(x) = x^2 + 3x，求 f'(1)",
+        ask: '求切线斜率。',
+        answers: ['5'],
+        answerTex: '5',
+        hint: '逐项求导：x² 的导数是 2x。',
+        explain: "$f'(x)=2x+3$，代入 $x=1$ 得 $5$。"
+      },
+      {
+        prompt: "f(x) = \\sec x，求 f'(0)",
+        ask: '求切线斜率。',
+        answers: ['0'],
+        answerTex: '0',
+        hint: 'sec x 的导数是 sec x · tan x，而 tan 0 = 0。',
+        explain: "$f'(x)=\\sec x\\tan x$，$f'(0)=1\\cdot 0=0$。"
+      }
+    ],
+    taylor: [
+      {
+        prompt: "e^x 在 x = 0 处的泰勒展开中，x^2 项的系数是？",
+        ask: '填写系数。',
+        answers: ['1/2', '0.5'],
+        answerTex: PRACTICE_TEX.frac12,
+        hint: 'e^x = 1 + x + x²/2! + x³/3! + …',
+        explain: '$x^2$ 项是 $\\frac{x^2}{2!}=\\frac{1}{2}x^2$，系数为 $\\frac{1}{2}$。'
+      },
+      {
+        prompt: "\\sin x 在 x = 0 处的展开中，x^3 项的系数是？",
+        ask: '填写系数。',
+        answers: ['-1/6', '-0.1666667'],
+        answerTex: PRACTICE_TEX.frac16,
+        hint: 'sin x = x − x³/3! + x⁵/5! − …',
+        explain: '$x^3$ 项是 $-\\frac{x^3}{3!}=-\\frac{1}{6}x^3$，系数为 $-\\frac{1}{6}$。'
+      },
+      {
+        prompt: "\\cos x 在 x = 0 处的展开中，x^2 项的系数是？",
+        ask: '填写系数。',
+        answers: ['-1/2', '-0.5'],
+        answerTex: '-\\frac{1}{2}',
+        hint: 'cos x = 1 − x²/2! + x⁴/4! − …',
+        explain: '$x^2$ 项是 $-\\frac{x^2}{2!}=-\\frac{1}{2}x^2$，系数为 $-\\frac{1}{2}$。'
+      },
+      {
+        prompt: "\\ln(1+x) 在 x = 0 处的展开中，x^2 项的系数是？",
+        ask: '填写系数。',
+        answers: ['-1/2', '-0.5'],
+        answerTex: '-\\frac{1}{2}',
+        hint: 'ln(1+x) = x − x²/2 + x³/3 − …',
+        explain: '展开式为 $x-\\frac{x^2}{2}+\\frac{x^3}{3}-\\cdots$，所以系数是 $-\\frac{1}{2}$。'
+      },
+      {
+        prompt: "\\frac{1}{1-x} 在 x = 0 处的展开中，x 项的系数是？",
+        ask: '填写系数。',
+        answers: ['1'],
+        answerTex: '1',
+        hint: '这是等比级数 1 + x + x² + x³ + …',
+        explain: '$\\frac{1}{1-x}=1+x+x^2+\\cdots$，$x$ 项系数为 $1$。'
+      },
+      {
+        prompt: "e^x 的三阶泰勒多项式 P_3(x) 在 x = 1 处的值 P_3(1) 是？",
+        ask: '填写数值。',
+        answers: ['8/3', '2.6666667'],
+        answerTex: PRACTICE_TEX.frac23,
+        hint: 'P₃(x) = 1 + x + x²/2 + x³/6。',
+        explain: '$P_3(1)=1+1+\\frac{1}{2}+\\frac{1}{6}=\\frac{8}{3}$。'
+      }
+    ],
+    integral: [
+      {
+        prompt: '\\int_{0}^{1} 2x \\, dx',
+        ask: '求定积分。',
+        answers: ['1'],
+        answerTex: '1',
+        hint: '2x 的原函数是 x²。',
+        explain: '$\\int_0^1 2x\\,dx = [x^2]_0^1 = 1$。'
+      },
+      {
+        prompt: '\\int_{0}^{\\pi} \\sin x \\, dx',
+        ask: '求定积分。',
+        answers: ['2'],
+        answerTex: '2',
+        hint: 'sin x 的原函数是 −cos x。',
+        explain: '$[-\\cos x]_0^{\\pi} = -(-1)-(-1)=2$。'
+      },
+      {
+        prompt: '\\int_{0}^{1} e^x \\, dx',
+        ask: '求定积分。',
+        answers: ['e-1', '1.7182818'],
+        answerTex: 'e - 1',
+        hint: 'e^x 的原函数还是 e^x。',
+        explain: '$[e^x]_0^1=e^1-e^0=e-1$。'
+      },
+      {
+        prompt: '\\int_{0}^{2} x^2 \\, dx',
+        ask: '求定积分。',
+        answers: ['8/3', '2.6666667'],
+        answerTex: PRACTICE_TEX.frac23,
+        hint: 'x² 的原函数是 x³/3。',
+        explain: '$\\left[\\frac{x^3}{3}\\right]_0^2=\\frac{8}{3}$。'
+      },
+      {
+        prompt: '\\int_{1}^{e} \\frac{1}{x} \\, dx',
+        ask: '求定积分。',
+        answers: ['1'],
+        answerTex: '1',
+        hint: '1/x 的原函数是 ln x。',
+        explain: '$[\\ln x]_1^e=\\ln e-\\ln 1=1$。'
+      },
+      {
+        prompt: '\\int_{0}^{1} (3x^2 + 1) \\, dx',
+        ask: '求定积分。',
+        answers: ['2'],
+        answerTex: '2',
+        hint: '分别积分：x³ 与 x。',
+        explain: '$[x^3+x]_0^1=1+1=2$。'
+      }
+    ]
+  };
+
+  function emptyPracticeProgress() {
+    return {
+      solved: { limit: [], derivative: [], taylor: [], integral: [] },
+      missed: { limit: [], derivative: [], taylor: [], integral: [] },
+      cursor: { limit: 0, derivative: 0, taylor: 0, integral: 0 }
+    };
+  }
+
+  function loadPracticeProgress() {
+    const base = emptyPracticeProgress();
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(PRACTICE_KEY) || 'null');
+      if (!stored || typeof stored !== 'object') return base;
+      Object.keys(base.solved).forEach((mode) => {
+        const total = PRACTICE_QUESTIONS[mode].length;
+        if (Array.isArray(stored.solved && stored.solved[mode])) {
+          base.solved[mode] = stored.solved[mode].filter((index) => Number.isInteger(index) && index >= 0 && index < total);
+        }
+        if (Array.isArray(stored.missed && stored.missed[mode])) {
+          base.missed[mode] = stored.missed[mode].filter((index) => Number.isInteger(index) && index >= 0 && index < total);
+        }
+        if (stored.cursor && Number.isInteger(stored.cursor[mode])) {
+          base.cursor[mode] = ((stored.cursor[mode] % total) + total) % total;
+        }
+      });
+    } catch (error) {
+      return base;
+    }
+    return base;
+  }
+
+  let practiceProgress = null;
+
+  function savePracticeProgress() {
+    if (!practiceProgress) return;
+    try {
+      window.localStorage.setItem(PRACTICE_KEY, JSON.stringify(practiceProgress));
+    } catch (error) {
+      /* storage may be unavailable */
+    }
+  }
+
+  function practiceSolved(mode) {
+    return practiceProgress && Array.isArray(practiceProgress.solved[mode])
+      ? practiceProgress.solved[mode]
+      : [];
+  }
+
+  function updatePracticeBadges() {
+    let total = 0;
+    Object.keys(PRACTICE_QUESTIONS).forEach((mode) => {
+      const solved = practiceSolved(mode).length;
+      total += solved;
+      if (els.progressBadges[mode]) els.progressBadges[mode].textContent = `${solved}/6`;
+    });
+    els.practiceTotal.textContent = `已答对 ${total} / 24`;
+  }
+
+  function normalizeAnswer(text) {
+    return String(text || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[−–—]/g, '-')
+      .replace(/\s+/g, '')
+      .replace(/[×·∙⋅]/g, '*')
+      .replace(/π/g, 'pi')
+      .replace(/∞/g, 'infinity');
+  }
+
+  function gradePracticeAnswer(raw, question) {
+    const normalized = normalizeAnswer(raw);
+    if (!normalized) return false;
+    const numeric = parseScalar(raw);
+    for (const answer of question.answers) {
+      if (normalized === normalizeAnswer(answer)) return true;
+      const target = parseScalar(answer);
+      if (numeric !== null && target !== null) {
+        if (Math.abs(numeric - target) <= 1e-6 * Math.max(1, Math.abs(target))) return true;
+      }
+    }
+    return false;
+  }
+
+  function currentPracticeQuestion() {
+    const mode = state.practiceMode;
+    if (state.practiceCustom[mode]) return state.practiceCustom[mode];
+    const list = PRACTICE_QUESTIONS[mode];
+    return list[practiceProgress ? practiceProgress.cursor[mode] : 0] || list[0];
+  }
+
+  function practiceFeedback(kind, title, body) {
+    els.practiceFeedback.hidden = false;
+    els.practiceFeedback.className = `practice-feedback is-${kind}`;
+    els.practiceFeedback.innerHTML = `<span class="pf-title">${escapeHtml(title)}</span>${body}`;
+  }
+
+  function renderPractice() {
+    const mode = state.practiceMode;
+    const custom = state.practiceCustom[mode];
+    const list = PRACTICE_QUESTIONS[mode];
+    const index = practiceProgress ? practiceProgress.cursor[mode] : 0;
+    const question = custom || list[index];
+    const solvedIndex = practiceSolved(mode);
+    const isSolved = !custom && solvedIndex.indexOf(index) >= 0;
+
+    els.practiceTabs.forEach((tab) => {
+      const active = tab.dataset.practiceMode === mode;
+      tab.classList.toggle('is-active', active);
+      tab.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    els.practiceIndex.textContent = custom ? 'AI 出题' : `第 ${index + 1} / ${list.length} 题`;
+    els.practiceTag.textContent = custom ? `${MODE_LABELS[mode]} · AI` : MODE_LABELS[mode];
+    els.practiceQuestion.innerHTML = `${texDisplay(question.prompt)}<p class="practice-ask">${escapeHtml(question.ask || '请作答。')}</p>`;
+    els.practiceAnswer.value = '';
+    els.practiceAnswer.disabled = false;
+    els.practiceSubmit.disabled = false;
+    els.practiceHint.disabled = false;
+    els.practiceAI.disabled = false;
+
+    if (isSolved) {
+      practiceFeedback('correct', '这题已经答对', `解析：${renderRichText(question.explain || '')}`);
+    } else {
+      els.practiceFeedback.hidden = true;
+      els.practiceFeedback.innerHTML = '';
+    }
+    updatePracticeBadges();
+  }
+
+  function submitPractice() {
+    const mode = state.practiceMode;
+    const custom = state.practiceCustom[mode];
+    const question = currentPracticeQuestion();
+    const raw = els.practiceAnswer.value;
+    if (!normalizeAnswer(raw)) {
+      practiceFeedback('wrong', '先写一个答案', '可以输入整数、分数或小数，例如 1、1/3、0.5。');
+      return;
+    }
+
+    const index = practiceProgress ? practiceProgress.cursor[mode] : 0;
+    const solved = practiceProgress ? practiceProgress.solved[mode] : [];
+    const missed = practiceProgress ? practiceProgress.missed[mode] : [];
+    const correct = gradePracticeAnswer(raw, question);
+
+    if (custom) {
+      if (correct) {
+        practiceFeedback('correct', '回答正确', `解析：${renderRichText(question.explain || '')}`);
+      } else {
+        practiceFeedback('wrong', '还差一点', `提示：${escapeHtml(question.hint || '')}<br>正确答案：${texInline(question.answerTex || question.answers[0])}<br>解析：${renderRichText(question.explain || '')}`);
+      }
+      return;
+    }
+
+    if (correct) {
+      if (solved.indexOf(index) < 0) {
+        solved.push(index);
+        solved.sort((a, b) => a - b);
+        const missIndex = missed.indexOf(index);
+        if (missIndex >= 0) missed.splice(missIndex, 1);
+        savePracticeProgress();
+      }
+      practiceFeedback('correct', '回答正确', `解析：${renderRichText(question.explain || '')}`);
+      updatePracticeBadges();
+    } else {
+      if (missed.indexOf(index) < 0) {
+        missed.push(index);
+        missed.sort((a, b) => a - b);
+        savePracticeProgress();
+      }
+      practiceFeedback('wrong', '还差一点', `提示：${escapeHtml(question.hint || '')}<br>正确答案：${texInline(question.answerTex || question.answers[0])}<br>解析：${renderRichText(question.explain || '')}`);
+      updatePracticeBadges();
+    }
+  }
+
+  function nextPractice() {
+    const mode = state.practiceMode;
+    if (state.practiceCustom[mode]) {
+      delete state.practiceCustom[mode];
+    }
+    if (practiceProgress) {
+      practiceProgress.cursor[mode] = (practiceProgress.cursor[mode] + 1) % PRACTICE_QUESTIONS[mode].length;
+      savePracticeProgress();
+    }
+    renderPractice();
+    els.practiceAnswer.focus();
+  }
+
+  async function requestAiPractice() {
+    const mode = state.practiceMode;
+    if (els.practiceAI.disabled) return;
+    els.practiceAI.disabled = true;
+    els.practiceAI.textContent = '正在出题…';
+    const question = await fetchAiPracticeQuestion(mode);
+    els.practiceAI.textContent = 'AI 出题';
+    els.practiceAI.disabled = false;
+    if (question) {
+      state.practiceCustom[mode] = question;
+      renderPractice();
+    } else {
+      // Silent fallback: move to the next preset question.
+      nextPractice();
+    }
   }
 
   /* ───────────────────────────── Readouts ───────────────────────────── */
@@ -2581,6 +3448,63 @@
     els.intMinus.addEventListener('click', () => setIntegralCount(state.integral.n - 1));
     els.intPlus.addEventListener('click', () => setIntegralCount(state.integral.n + 1));
 
+    els.practiceOpen.addEventListener('click', () => openSheet('practice'));
+    els.aiOpen.addEventListener('click', () => openSheet('ai', { mode: state.mode }));
+    els.askMinis.forEach((button) => {
+      button.addEventListener('click', () => openSheet('ai', { mode: button.dataset.askMode || state.mode }));
+    });
+
+    els.backdrop.addEventListener('click', () => closeSheet());
+    els.aiClose.addEventListener('click', () => closeSheet());
+    els.practiceClose.addEventListener('click', () => closeSheet());
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && state.sheet) {
+        event.preventDefault();
+        closeSheet();
+      }
+    });
+
+    els.aiForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      submitAiQuestion(els.aiInput.value);
+    });
+    els.aiInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        submitAiQuestion(els.aiInput.value);
+      }
+    });
+    els.aiChips.querySelectorAll('button').forEach((button) => {
+      button.addEventListener('click', () => submitAiQuestion(button.dataset.prompt));
+    });
+
+    els.practiceTabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const mode = tab.dataset.practiceMode;
+        if (!PRACTICE_QUESTIONS[mode]) return;
+        state.practiceMode = mode;
+        renderPractice();
+        els.practiceAnswer.focus();
+      });
+    });
+    els.practiceForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      submitPractice();
+    });
+    els.practiceHint.addEventListener('click', () => {
+      const question = currentPracticeQuestion();
+      practiceFeedback('hint', '提示', escapeHtml(question.hint || '先回到定义，再逐项代入。'));
+    });
+    els.practiceNext.addEventListener('click', nextPractice);
+    els.practiceAI.addEventListener('click', requestAiPractice);
+    els.practiceReset.addEventListener('click', () => {
+      if (!window.confirm('清空所有模块的练习进度？')) return;
+      practiceProgress = emptyPracticeProgress();
+      savePracticeProgress();
+      Object.keys(state.practiceCustom).forEach((mode) => delete state.practiceCustom[mode]);
+      renderPractice();
+    });
+
     bindTabs();
     bindProbeInteraction();
     bindPressFeedback();
@@ -2606,6 +3530,8 @@
   /* ───────────────────────────── Boot ───────────────────────────── */
 
   function boot() {
+    practiceProgress = loadPracticeProgress();
+    updatePracticeBadges();
     bindEvents();
     state.mode = 'limit';
     state.probeX = state.limit.a + 0.9;
