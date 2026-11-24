@@ -2434,11 +2434,20 @@ html[data-sfx="off"] .sfx-toggle { opacity: .5; }
 }
 .gal-option:hover:not(:disabled) { border-color: var(--ink); transform: translateX(3px); }
 .gal-option:disabled { opacity: .45; cursor: default; }
-.gal-expr { margin: 0; font-family: var(--serif); font-size: 14px; color: var(--ink-soft); }
-.screen-gal .gal-portrait {
-  position: absolute; right: 1.5%; top: 6%; left: auto; bottom: auto;
-  width: 40%; height: 86%; object-fit: contain; object-position: 50% 10%;
-  z-index: 1; opacity: .92; filter: grayscale(1) contrast(1.04);
+.gal-expr {
+  position: absolute;
+  right: 4%;
+  bottom: 1%;
+  width: 46%;
+  height: 88%;
+  object-fit: contain;
+  object-position: 50% 100%;
+  z-index: 2;
+  opacity: 0;
+  filter: grayscale(1) contrast(1.04);
+  transition: opacity .38s ease;
+  pointer-events: none;
+  will-change: opacity;
 }
 .screen-gal .gal-portrait.is-expr { opacity: 1; }
 
@@ -2453,3 +2462,16 @@ html[data-sfx="off"] .sfx-toggle { opacity: .5; }
 .screen-game .scene-copy .scene-text,
 .screen-game .scene-copy .scene-question,
 .screen-game .scene-copy .scene-hint { max-width: 330px !important; }
+
+/* ============ galgame: 主立绘退到最右做淡背景，表情立绘在前 ============ */
+.screen-gal .gal-portrait {
+  right: -4% !important;
+  left: auto !important;
+  width: 26% !important;
+  height: 76% !important;
+  top: 12% !important;
+  opacity: .16 !important;
+}
+
+/* 表情层：有 is-show 时可见 */
+.gal-expr.is-show { opacity: 1; }
