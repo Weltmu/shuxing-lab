@@ -27,6 +27,37 @@ SHAPE_NAMES = {
 }
 
 
+
+def clean_meta(meta):
+    """去掉「主干 · 」「分叉点 N · 」「中版 · 」等制作标注。"""
+    m = re.sub(r"^(主干|分叉点 \d+|暖版|中版|冷版)\s*·\s*", "", meta)
+    m = re.sub(r"^(主干|分叉点 \d+|暖版|中版|冷版)\s*·\s*", "", m)
+    m = re.sub(r"^(暖版|中版|冷版)\s*·\s*", "", m)
+    return m.strip()
+
+
+def merge_body(lines, target_paras=2):
+    """PDF 提取是硬换行；合并成长句后再按句号切成 2~3 段。"""
+    text = "".join([l.strip() for l in lines if l.strip()])
+    if not text:
+        return []
+    # 按句末标点切句
+    parts = re.findall(r"[^。！？…]*[。！？…]+|[^。！？…]+$", text)
+    parts = [p.strip() for p in parts if p.strip()]
+    if len(parts) <= target_paras:
+        return parts
+    total = sum(len(p) for p in parts)
+    per = total / float(target_paras)
+    out, cur = [], ""
+    for p in parts:
+        cur += p
+        if len(cur) >= per and len(out) < target_paras - 1:
+            out.append(cur)
+            cur = ""
+    if cur:
+        out.append(cur)
+    return out
+
 def synth_echo(prev_opt_label, prev_scene_title):
     """缺的第三条回响：只描述上一幕选项的动作后果，不引入新事实。"""
     label = prev_opt_label.strip("。 ")
@@ -91,6 +122,13 @@ def main():
             "shapeName": SHAPE_NAMES.get(e["code"], e["title"]),
             "shape": e["code"],
         })
+
+    # 正文按 PDF 换行合并成段；meta 去掉制作标注
+    for s in scenes + m07vars:
+        s["body"] = merge_body(s.get("body") or [])
+        s["meta"] = clean_meta(s.get("meta") or "")
+    for g in galgame:
+        g["meta"] = clean_meta(g.get("meta") or "")
 
     payload = {
         "scenes": scenes,

@@ -264,25 +264,59 @@
       ['mid', 'cold'].forEach(function (k) {
         var id = 'm07-' + k;
         if (ART[id]) return;
-        ART[id] = {
-          bg: ART.m07.bg,
-          fg: ART.m07.fg,
-          portrait: ART.m07.portrait,
-          options: ART.m07.options
-        };
+        ART[id] = { bg: ART.m07.bg, fg: ART.m07.fg, portrait: ART.m07.portrait, options: ART.m07.options };
       });
     }
-    // 选项位：全部收进人物像左侧（x + w <= 56%），悬停文字不会压到立绘
+    // 选项位：整组平移/缩放，保证 (1) 不进人物像区域 (2) 三个物件互不重叠
+    var BAND_L = 35.5, BAND_R = 56.5;
     Object.keys(ART).forEach(function (id) {
       var art = ART[id];
-      if (!art || !art.options) return;
-      art.options.forEach(function (o) {
-        var spot = o.spot;
-        if (!spot) return;
-        if (spot[0] + spot[2] > 56) spot[0] = Math.max(30, 56 - spot[2]);
+      if (!art || !art.options || art.options.length < 2) return;
+      var spots = art.options.map(function (o) { return o.spot; });
+      var minX = Math.min.apply(null, spots.map(function (s) { return s[0]; }));
+      var maxR = Math.max.apply(null, spots.map(function (s) { return s[0] + s[2]; }));
+      var width = Math.max(1, maxR - minX);
+      var band = BAND_R - BAND_L;
+      var scaleX = width > band ? band / width : 1;
+      var span = width * scaleX;
+      var startX = Math.min(Math.max(minX, BAND_L), BAND_R - span);
+      // 垂直：整体收进 12~94
+      var minY = Math.min.apply(null, spots.map(function (s) { return s[1]; }));
+      var maxB = Math.max.apply(null, spots.map(function (s) { return s[1] + s[3]; }));
+      var scaleY = (maxB - minY) > 80 ? 80 / (maxB - minY) : 1;
+      var startY = Math.min(Math.max(minY, 10), 96 - (maxB - minY) * scaleY);
+      spots.forEach(function (sp) {
+        sp[0] = startX + (sp[0] - minX) * scaleX;
+        sp[2] = sp[2] * scaleX;
+        sp[1] = startY + (sp[1] - minY) * scaleY;
+        sp[3] = sp[3] * scaleY;
+      });
+      // 迭代分离：两两重叠就错开
+      function overlap(a, b) {
+        var ox = Math.min(a[0] + a[2], b[0] + b[2]) - Math.max(a[0], b[0]);
+        var oy = Math.min(a[1] + a[3], b[1] + b[3]) - Math.max(a[1], b[1]);
+        return (ox > 1 && oy > 1) ? { x: ox, y: oy } : null;
+      }
+      for (var pass = 0; pass < 6; pass++) {
+        var moved = false;
+        for (var i = 0; i < spots.length; i++) {
+          for (var j = i + 1; j < spots.length; j++) {
+            var ov = overlap(spots[i], spots[j]);
+            if (!ov) continue;
+            moved = true;
+            var s2 = spots[j];
+            var leftRoom = s2[0] - BAND_L;
+            if (leftRoom > ov.x + 2) { s2[0] -= ov.x + 2; }
+            else { s2[1] = Math.min(94 - s2[3], s2[1] + ov.y + 2); }
+          }
+        }
+        if (!moved) break;
+      }
+      // 最终再夹一遍，确保不出人物像区域
+      spots.forEach(function (sp) {
+        if (sp[0] + sp[2] > BAND_R) sp[0] = Math.max(BAND_L, BAND_R - sp[2]);
       });
     });
   })();
-
   root.FAREWELL_AFFINITY = A;
 })(typeof window !== 'undefined' ? window : globalThis);

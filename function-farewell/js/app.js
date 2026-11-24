@@ -2668,8 +2668,21 @@ function buildEndingScene() {
 
 
   /* ---------------- galgame 单元（间章对话 + 3 选项） ---------------- */
+  /* ---------------- galgame 单元（表情立绘 + 对话 + 3 选项） ---------------- */
+  var GAL_EXPR = { '平静': 'calm', '闭眼': 'blink', '疑惑': 'puzzle', '微笑': 'smile', '捂嘴笑': 'laugh', '害羞': 'shy', '生气': 'angry', '悲伤': 'sad' };
+  var GAL_EXPR_LOADED = false;
+  function preloadGalExpr() {
+    if (GAL_EXPR_LOADED) return;
+    GAL_EXPR_LOADED = true;
+    Object.keys(GAL_EXPR).forEach(function (k) {
+      var img = new Image();
+      img.src = 'assets/gal/' + GAL_EXPR[k] + '-soft.png';
+    });
+  }
+
   function buildGalgameScene(unit) {
     if (!unit) return buildGameScene(DATA.sceneById.m01);
+    preloadGalExpr();
     var sec = document.createElement('section');
     sec.id = 'screen-game';
     sec.className = 'screen screen-game screen-gal';
@@ -2685,11 +2698,11 @@ function buildEndingScene() {
       '    <div class="gal-panel">',
       '      <p class="gal-kicker">' + unit.title + '</p>',
       '      <div id="gal-log" class="gal-log" aria-live="polite"></div>',
-      '      <p id="gal-expr" class="gal-expr" hidden></p>',
       '      <div id="gal-options" class="gal-options" hidden></div>',
       '      <button id="gal-next" class="btn btn-solid" type="button">继续</button>',
       '    </div>',
       portraitMarkup,
+      '    <img class="gal-expr is-show" src="assets/gal/calm-soft.png" alt="" aria-hidden="true" decoding="async">',
       '  </div>',
       '</div>',
       gameFooterInner()
@@ -2698,10 +2711,36 @@ function buildEndingScene() {
     var log = sec.querySelector('#gal-log');
     var nextBtn = sec.querySelector('#gal-next');
     var optsEl = sec.querySelector('#gal-options');
-    var exprEl = sec.querySelector('#gal-expr');
-    var portrait = sec.querySelector('.gal-portrait');
+    var exprImg = sec.querySelector('.gal-expr');
     var lines = unit.dialogue || [];
     var shown = 0;
+    var busy = false;      // 表情反馈期间暂停眨眼
+    var blinkTimer = null;
+
+    function setExpr(name, fade) {
+      var key = GAL_EXPR[name] || 'calm';
+      exprImg.src = 'assets/gal/' + key + '-soft.png';
+      exprImg.classList.toggle('is-show', fade !== false);
+    }
+
+    // 眨眼：平静时每 4~6 秒一次，闭眼 120~180 毫秒（用 interval 轮询，避免链式 timeout 丢失）
+    var blinkAt = Date.now() + 4000 + Math.random() * 2000;
+    function startBlinkLoop() {
+      blinkTimer = setInterval(function () {
+        if (!sec.isConnected) { clearInterval(blinkTimer); return; }
+        if (busy) return;
+        if (Date.now() < blinkAt) return;
+        exprImg.src = 'assets/gal/blink-soft.png';
+        blinkAt = Date.now() + 4000 + Math.random() * 2000;
+        setTimeout(function () {
+          if (!sec.isConnected || busy) return;
+          exprImg.src = 'assets/gal/calm-soft.png';
+        }, 120 + Math.random() * 60);
+      }, 200);
+    }
+
+    setExpr('平静', true);
+    startBlinkLoop();
 
     function showLine(i) {
       if (i >= lines.length) return;
@@ -2729,19 +2768,17 @@ function buildEndingScene() {
           state.picked.push(o.id);
           state.lastOptionId = o.id;
           state.selections.push({ scene: unit.title, label: o.label, text: o.label, optionId: o.id });
-          // 表情反馈：有素材就换图，没有就显示文字
-          var cap = o.expr ? '（' + o.expr + '）' : '';
-          if (o.expr && window.FAREWELL_ART) {
-            var galSrc = 'assets/gal/' + ({ '平静': 'calm', '闭眼': 'blink', '疑惑': 'puzzle', '微笑': 'smile', '捂嘴笑': 'laugh', '害羞': 'shy', '生气': 'angry', '悲伤': 'sad' }[o.expr] || 'calm') + '-soft.png';
-            if (portrait) portrait.src = galSrc;
-          }
-          if (cap) { exprEl.textContent = cap; exprEl.hidden = false; }
-          if (portrait) portrait.classList.add('is-expr');
           if (window.SFX) window.SFX.play('select');
+          // 表情反馈：停留 1.6 秒，再渐隐回平静，然后进入下一幕
+          busy = true;
+          setExpr(o.expr || '平静', true);
           setTimeout(function () {
-            if (o.skip) state.skipNextUnit = true;
-            goNextBeat(true);
-          }, 1700);
+            exprImg.classList.remove('is-show');
+            setTimeout(function () {
+              if (o.skip) state.skipNextUnit = true;
+              goNextBeat(true);
+            }, 380);
+          }, 1600);
         });
         optsEl.appendChild(b);
       });
@@ -2750,12 +2787,13 @@ function buildEndingScene() {
 
     function advance() {
       if (shown < lines.length) { showLine(shown); shown += 1; return; }
-      if (shown >= lines.length) { showOptions(); return; }
+      showOptions();
     }
 
     nextBtn.addEventListener('click', advance);
     advance();
 
+    sec.addEventListener('DOMNodeRemovedFromDocument', function () { if (blinkTimer) clearInterval(blinkTimer); });
     return sec;
   }
 
@@ -3469,6 +3507,7 @@ function buildEndingScene() {
   }
 
   window.__farewell = {
+    openGalgame: function (group) { var u = DATA.galgameUnitFor ? DATA.galgameUnitFor(group) : null; return buildGalgameScene(u); },
     state: state,
     DATA: DATA,
     Engine: Engine,

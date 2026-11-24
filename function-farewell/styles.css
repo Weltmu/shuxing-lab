@@ -2446,3 +2446,10 @@ html[data-sfx="off"] .sfx-toggle { opacity: .5; }
 .screen-game .scene-copy { max-height: 52vh; overflow-y: auto; padding-right: 6px; }
 .screen-game .scene-copy::-webkit-scrollbar { width: 4px; }
 .screen-game .scene-copy::-webkit-scrollbar-thumb { background: var(--line); border-radius: 2px; }
+
+/* 选项带在正文右侧：正文栏收到 330px，避免与物件重叠 */
+.screen-game .scene-copy,
+.screen-game .scene-copy .scene-title,
+.screen-game .scene-copy .scene-text,
+.screen-game .scene-copy .scene-question,
+.screen-game .scene-copy .scene-hint { max-width: 330px !important; }
