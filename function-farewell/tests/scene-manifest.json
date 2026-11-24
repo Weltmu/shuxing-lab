@@ -1,0 +1,302 @@
+[
+  {
+    "id": "m01",
+    "step": 1,
+    "title": "公园的第七张长椅",
+    "when": "九月 · 认识第九天",
+    "loc": "公园（湖边/长椅）",
+    "type": "park",
+    "portrait": "assets/portrait-m01-soft.png",
+    "q": "这一次，你打算怎么走过去？"
+  },
+  {
+    "id": "m02",
+    "step": 2,
+    "title": "窗边的第二杯",
+    "when": "九月末 · 雨",
+    "loc": "咖啡馆（窗边/桌前）",
+    "type": "cafe",
+    "portrait": "assets/portrait-m02-soft.png",
+    "q": "雨快停了，你打算怎么结束这一桌？"
+  },
+  {
+    "id": "m03",
+    "step": 3,
+    "title": "末班车之前",
+    "when": "十月 · 末班车",
+    "loc": "车站站台",
+    "type": "station",
+    "portrait": "assets/portrait-m03-soft.png",
+    "q": "车门打开之前，你会走过去吗？"
+  },
+  {
+    "id": "m04",
+    "step": 4,
+    "title": "夜里十一点四十七",
+    "when": "十月 · 深夜十一点四十七",
+    "loc": "室内（房间/书桌/床边）",
+    "type": "room",
+    "portrait": "assets/portrait-m04-soft.png",
+    "q": "这条深夜的消息，你怎么回？"
+  },
+  {
+    "id": "m05",
+    "step": 5,
+    "title": "长椅上的雪",
+    "when": "十一月 · 第一场雪",
+    "loc": "公园（湖边/长椅）",
+    "type": "park",
+    "portrait": "assets/portrait-m05-soft.png",
+    "q": "你要不要坐下？"
+  },
+  {
+    "id": "m06",
+    "step": 6,
+    "title": "还书那天",
+    "when": "十一月 · 还书",
+    "loc": "室内（房间/书桌/床边）",
+    "type": "room",
+    "portrait": "assets/portrait-m06-soft.png",
+    "q": "这一次，你打算怎么把书接过来？"
+  },
+  {
+    "id": "m07",
+    "step": 7,
+    "title": "打烊前的咖啡馆",
+    "when": "十二月 · 打烊前",
+    "loc": "咖啡馆（窗边/桌前）",
+    "type": "cafe",
+    "portrait": "assets/portrait-m07-soft.png",
+    "q": "打烊前的这十分钟，你往哪边走？"
+  },
+  {
+    "id": "m08",
+    "step": 8,
+    "title": "天台上的烟花",
+    "when": "十二月 · 跨年前",
+    "loc": "天台",
+    "type": "rooftop",
+    "portrait": "assets/portrait-m08-soft.png",
+    "q": "烟花响的时候，你想说什么？"
+  },
+  {
+    "id": "m09",
+    "step": 9,
+    "title": "岔路口的红灯",
+    "when": "一月 · 红灯",
+    "loc": "街道/路口",
+    "type": "street",
+    "portrait": "assets/portrait-m09-soft.png",
+    "q": "这二十秒里，你问不问？"
+  },
+  {
+    "id": "m10",
+    "step": 10,
+    "title": "她的生日",
+    "when": "一月 · 生日",
+    "loc": "室内（房间/书桌/床边）",
+    "type": "room",
+    "portrait": "assets/portrait-m10-soft.png",
+    "q": "这块蛋糕，你还切不切？"
+  },
+  {
+    "id": "m11",
+    "step": 11,
+    "title": "台灯亮到很晚",
+    "when": "一月 · 深夜",
+    "loc": "室内（房间/书桌/床边）",
+    "type": "room",
+    "portrait": "assets/portrait-m11-soft.png",
+    "q": "天亮之前，这句话你发不发？"
+  },
+  {
+    "id": "m12",
+    "step": 12,
+    "title": "急诊室的走廊",
+    "when": "二月 · 雪夜急诊",
+    "loc": "室内（房间/书桌/床边）",
+    "type": "room",
+    "portrait": "assets/portrait-m12-soft.png",
+    "q": "这一夜，你怎么守？"
+  },
+  {
+    "id": "m13",
+    "step": 13,
+    "title": "站台之外",
+    "when": "二月末 · 站台",
+    "loc": "车站站台",
+    "type": "station",
+    "portrait": "assets/portrait-m13-soft.png",
+    "q": "车进站之前，你往哪边走？"
+  },
+  {
+    "id": "m14",
+    "step": 14,
+    "title": "春天的第七张长椅",
+    "when": "三月 · 春天",
+    "loc": "公园（湖边/长椅）",
+    "type": "park",
+    "portrait": "assets/portrait-m14-soft.png",
+    "q": "这句话，你接不接？"
+  },
+  {
+    "id": "m15",
+    "step": 15,
+    "title": "撑一把伞",
+    "when": "三月 · 雨天",
+    "loc": "街道/路口",
+    "type": "street",
+    "portrait": "assets/portrait-m15-soft.png",
+    "q": "这把伞，怎么打？"
+  },
+  {
+    "id": "m16",
+    "step": 16,
+    "title": "第一次吵起来",
+    "when": "四月 · 吵架",
+    "loc": "室内（房间/书桌/床边）",
+    "type": "room",
+    "portrait": "assets/portrait-m16-soft.png",
+    "q": "这句话，你怎么回？"
+  },
+  {
+    "id": "m17",
+    "step": 17,
+    "title": "沉默的三天",
+    "when": "四月 · 沉默",
+    "loc": "室内（房间/书桌/床边）",
+    "type": "room",
+    "portrait": "assets/portrait-m17-soft.png",
+    "q": "这两个字，你怎么回？"
+  },
+  {
+    "id": "m18",
+    "step": 18,
+    "title": "一封没寄出的信",
+    "when": "四月末 · 信",
+    "loc": "室内（房间/书桌/床边）",
+    "type": "room",
+    "portrait": "assets/portrait-m18-soft.png",
+    "q": "这封信，寄不寄？"
+  },
+  {
+    "id": "m19",
+    "step": 19,
+    "title": "毕业照那天",
+    "when": "五月 · 毕业照",
+    "loc": "街道/路口",
+    "type": "street",
+    "portrait": "assets/portrait-m19-soft.png",
+    "q": "这个位置，你站不站？"
+  },
+  {
+    "id": "m20",
+    "step": 20,
+    "title": "最后一次上天台",
+    "when": "五月末 · 天台",
+    "loc": "天台",
+    "type": "rooftop",
+    "portrait": "assets/portrait-m20-soft.png",
+    "q": "这句话，你怎么接？"
+  },
+  {
+    "id": "m21",
+    "step": 21,
+    "title": "搬家那天的雨",
+    "when": "六月 · 搬家",
+    "loc": "室内（房间/书桌/床边）",
+    "type": "room",
+    "portrait": "assets/portrait-m21-soft.png",
+    "q": "这把伞，你怎么举？"
+  },
+  {
+    "id": "m22",
+    "step": 22,
+    "title": "一个人的房间",
+    "when": "六月末 · 空房间",
+    "loc": "室内（房间/书桌/床边）",
+    "type": "room",
+    "portrait": "assets/portrait-m22-soft.png",
+    "q": "这把钥匙，你怎么办？"
+  },
+  {
+    "id": "m23",
+    "step": 23,
+    "title": "新的地址",
+    "when": "七月 · 新地址",
+    "loc": "室内（房间/书桌/床边）",
+    "type": "room",
+    "portrait": "assets/portrait-m23-soft.png",
+    "q": "这个新地址，你怎么接？"
+  },
+  {
+    "id": "m24",
+    "step": 24,
+    "title": "凌晨的电话",
+    "when": "七月末 · 电话",
+    "loc": "室内（房间/书桌/床边）",
+    "type": "room",
+    "portrait": "assets/portrait-m24-soft.png",
+    "q": "这通电话，怎么继续？"
+  },
+  {
+    "id": "m25",
+    "step": 25,
+    "title": "车站送别",
+    "when": "八月 · 车站",
+    "loc": "车站站台",
+    "type": "station",
+    "portrait": "assets/portrait-m25-soft.png",
+    "q": "最后这几步，你走不走？"
+  },
+  {
+    "id": "m26",
+    "step": 26,
+    "title": "空掉的座位",
+    "when": "九月 · 空座位",
+    "loc": "咖啡馆（窗边/桌前）",
+    "type": "cafe",
+    "portrait": "assets/portrait-m26-soft.png",
+    "q": "这杯凉的，你怎么办？"
+  },
+  {
+    "id": "m27",
+    "step": 27,
+    "title": "那本书",
+    "when": "九月末 · 书",
+    "loc": "室内（房间/书桌/床边）",
+    "type": "room",
+    "portrait": "assets/portrait-m27-soft.png",
+    "q": "这本书，你怎么办？"
+  },
+  {
+    "id": "m28",
+    "step": 28,
+    "title": "没有寄出的第二封信",
+    "when": "十月 · 信",
+    "loc": "室内（房间/书桌/床边）",
+    "type": "room",
+    "portrait": "assets/portrait-m28-soft.png",
+    "q": "这一封，你寄不寄？"
+  },
+  {
+    "id": "m29",
+    "step": 29,
+    "title": "第二年的春天",
+    "when": "第二年春 · 消息",
+    "loc": "公园（湖边/长椅）",
+    "type": "park",
+    "portrait": "assets/portrait-m29-soft.png",
+    "q": "这张照片，你怎么回？"
+  },
+  {
+    "id": "m30",
+    "step": 30,
+    "title": "第二年，第七张长椅",
+    "when": "第二年秋 · 同一张长椅",
+    "loc": "公园（湖边/长椅）",
+    "type": "park",
+    "portrait": "assets/portrait-m30-soft.png",
+    "q": "这一次，你打算怎么坐？"
+  }
+]

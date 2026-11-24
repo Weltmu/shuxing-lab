@@ -62,3 +62,13 @@ docs/AI_BACKEND.md  问 AI 的服务端接口约定
 ## 许可
 
 目前未指定开源许可证。如需复用代码，请先联系仓库所有者。
+
+---
+
+## 《函数式告别》（function-farewell）
+
+同仓库子目录 [`function-farewell/`](function-farewell/) 是一个独立的中文叙事游戏项目：30 幕选择 → 累积函数信号 → 30 种结局 → 生成一局专属小说。
+
+- 线上：<https://math.astroswarm.cn/>
+- 结构说明与复核要点见 [`function-farewell/REVIEW-NOTES.md`](function-farewell/REVIEW-NOTES.md)
+- 纯静态前端（无构建）+ 一个 Python 小说生成代理；密钥只在服务器环境变量，仓库不含密钥

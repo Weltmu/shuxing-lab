@@ -1,0 +1,6 @@
+﻿# 忽略本地验收产物与大文件残留
+tests/shots/
+tests/shots-anim/
+tests/*.log
+server/__pycache__/
+*.bak
