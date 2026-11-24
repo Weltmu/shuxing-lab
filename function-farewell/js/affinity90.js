@@ -1,4 +1,4 @@
-/* 函数式告别 · 隐藏亲密度分支（按《90 幕分支》文档实现）
+/* 函数告别式 · 隐藏亲密度分支（按《90 幕分支》文档实现）
  *
  * - 每选 1 个选项：亲密度 += clamp(t+h+a, -2, +2)；总分限制在 ±12；界面不显示
  * - 4 个分叉点：m07（±4）、G1/G2/G3（±6）→ 暖 / 中 / 冷 变体，演完回主干
@@ -114,7 +114,7 @@
           key: false,
           signal: sig,
           next: null,
-          bridge: '',
+          bridge: o.bridge || '',
           skip: false
         };
       })
@@ -154,12 +154,14 @@
   function pushGal(group, after) { beats.push({ type: 'galgame', group: group, after: after, id: group }); }
 
   var PLAN = [
-    ['m01'], ['m02'], ['m03'], ['inter', 'n1'], ['m04'], ['m05'], ['chat', 'c1'],
-    ['m06'], ['m07branch'], ['m08'], ['inter', 'n2'], ['m09'], ['m10'], ['gal', 'G1'],
-    ['m11'], ['chat', 'c2'], ['m12'], ['m13'], ['inter', 'n3'], ['m14'], ['m15'],
-    ['chat', 'c3'], ['m16'], ['m17'], ['gal', 'G2'], ['m18'], ['m19'], ['inter', 'n4'],
-    ['m20'], ['m21'], ['chat', 'c4'], ['m22'], ['m23'], ['inter', 'n5'], ['m24'], ['m25'],
-    ['gal', 'G3'], ['m26'], ['m27'], ['chat', 'c5'], ['m28'], ['m29'], ['inter', 'n6'], ['m30']
+    ['m01'], ['m02'], ['inter', 'n1'], ['m03'], ['m04'], ['m05'], ['m06'],
+    ['m07branch'], ['m08'], ['m09'], ['m10'], ['gal', 'G1'],
+    ['m11'], ['m12'], ['chat', 'c4'], ['inter', 'n3'], ['m13'], ['inter', 'n2'],
+    ['m14'], ['m15'], ['m16'], ['m17'], ['gal', 'G2'], ['chat', 'c2'],
+    ['m18'], ['m19'], ['m20'], ['m21'], ['m22'], ['m23'], ['m24'],
+    ['m25'], ['gal', 'G3'], ['chat', 'c3'], ['m26'], ['chat', 'c5'],
+    ['m27'], ['m28'], ['m29'], ['inter', 'n4'], ['inter', 'n5'],
+    ['m30'], ['inter', 'n6']
   ];
   PLAN.forEach(function (step) {
     if (step[0] === 'inter') pushInter(step[1]);
@@ -168,6 +170,23 @@
     else if (step[0] === 'gal') pushGal(step[1], step[1] === 'G1' ? 'm10' : (step[1] === 'G2' ? 'm17' : 'm25'));
     else pushScene(step[0]);
   });
+
+
+  /* 间章/聊天按新时间线重排后，统一 actLabel（按所在位置） */
+  function reflowActLabels() {
+    var slot = 1;
+    beats.forEach(function (b) {
+      if (b.type === 'scene') {
+        var sc = sceneById[b.default === 'm07' ? 'm07' : b.default];
+        if (sc) slot = sc.slot;
+        return;
+      }
+      var label = slot <= 8 ? '第一幕 · 初秋' : (slot <= 16 ? '第二幕 · 隆冬' : (slot <= 24 ? '第三幕 · 夏' : '尾声 · 第二年'));
+      var list = b.type === 'chat' ? (D.chats || []) : (D.interludes || []);
+      list.forEach(function (x) { if (x.id === b.id) x.actLabel = label; });
+    });
+  }
+  reflowActLabels();
 
   /* ---------------- 结局 ---------------- */
   var SHAPE_OF = { A: 'heart', B: 'heart-half', C: 'asymptote', D: 'pause', E: 'two-lines' };
@@ -264,7 +283,8 @@
       ['mid', 'cold'].forEach(function (k) {
         var id = 'm07-' + k;
         if (ART[id]) return;
-        ART[id] = { bg: ART.m07.bg, fg: ART.m07.fg, portrait: ART.m07.portrait, options: ART.m07.options };
+        ART[id] = { bg: ART.m07.bg, fg: ART.m07.fg, portrait: ART.m07.portrait,
+          options: ART.m07.options.map(function (o) { return { spot: o.spot.slice(), art: o.art }; }) };
       });
     }
     // 选项位：整组平移/缩放，保证 (1) 不进人物像区域 (2) 三个物件互不重叠
@@ -283,13 +303,11 @@
       // 垂直：整体收进 12~94
       var minY = Math.min.apply(null, spots.map(function (s) { return s[1]; }));
       var maxB = Math.max.apply(null, spots.map(function (s) { return s[1] + s[3]; }));
-      var scaleY = (maxB - minY) > 80 ? 80 / (maxB - minY) : 1;
-      var startY = Math.min(Math.max(minY, 10), 96 - (maxB - minY) * scaleY);
+      var startY = Math.min(Math.max(minY, 8), 96 - (maxB - minY));
       spots.forEach(function (sp) {
         sp[0] = startX + (sp[0] - minX) * scaleX;
         sp[2] = sp[2] * scaleX;
-        sp[1] = startY + (sp[1] - minY) * scaleY;
-        sp[3] = sp[3] * scaleY;
+        sp[1] = startY + (sp[1] - minY);
       });
       // 迭代分离：两两重叠就错开
       function overlap(a, b) {
@@ -317,6 +335,23 @@
         if (sp[0] + sp[2] > BAND_R) sp[0] = Math.max(BAND_L, BAND_R - sp[2]);
       });
     });
+
+    // 选项图标改成「动作线稿」：按该幕选项的动作映射，不再用场景道具
+    var ICONS = root.ACTION_ICONS, pick = root.actionIconFor;
+    if (ICONS && pick) {
+      Object.keys(ART).forEach(function (id) {
+        var art = ART[id], sc = (D.sceneById && D.sceneById[id]) || variantScenes[id.replace('m07-', 'm07-')] || null;
+        if (!art || !art.options) return;
+        art.options.forEach(function (o, i) {
+          var raw = null;
+          if (sc && sc.options && sc.options[i]) raw = sc.options[i];
+          else if (ART[id] && id.indexOf('m07-') === 0 && m07.options[i]) raw = m07.options[i];
+          if (!raw) return;
+          var key = pick(raw.label, raw.text);
+          if (ICONS[key]) o.art = ICONS[key];
+        });
+      });
+    }
   })();
   root.FAREWELL_AFFINITY = A;
 })(typeof window !== 'undefined' ? window : globalThis);

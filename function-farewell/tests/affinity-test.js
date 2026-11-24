@@ -12,8 +12,10 @@ ctx.localStorage = { getItem() { return null; }, setItem() {} };
 vm.createContext(ctx);
 
 const FILES = [
-  'js/data.js', 'js/engine.js', 'js/story30.js', 'js/endings30.js',
-  'js/data30.js', 'js/story90.js', 'js/affinity90.js'
+  'js/data.js', 'js/engine.js',
+  'js/sketch.js', 'js/scene-art.js', 'js/scene30.js',
+  'js/story30.js', 'js/endings30.js',
+  'js/data30.js', 'js/action-icons.js', 'js/story90.js', 'js/affinity90.js'
 ];
 FILES.forEach((f) => vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, { filename: f }));
 
@@ -156,6 +158,57 @@ const stale = ['八个', '八次', '十二幕', '十二次', '十二个'].filter
   return false;
 });
 ok(stale.length === 0, '无过期数字（八个/八次/十二…）', stale);
+
+
+/* ---------------- 8. 动作图标（不是场景道具） ---------------- */
+const ICONS = ctx.ACTION_ICONS;
+const pickIcon = ctx.actionIconFor;
+ok(!!ICONS && Object.keys(ICONS).length >= 18, '动作图标库存在', ICONS ? Object.keys(ICONS).length : 0);
+const ART = ctx.FAREWELL_ART;
+let iconMiss = [], iconWrong = [];
+D.scenes.forEach((sc) => {
+  const art = ART[sc.id];
+  if (!art || !art.options) { iconMiss.push(sc.id); return; }
+  sc.options.forEach((o, i) => {
+    const a = art.options[i] && art.options[i].art;
+    if (!a) { iconMiss.push(sc.id + ':' + i); return; }
+    const want = ICONS[pickIcon(o.label, o.text)];
+    if (want && a !== want) iconWrong.push(sc.id + ':' + i);
+  });
+});
+ok(iconMiss.length === 0, '每一幕三个选项都有图标', iconMiss.slice(0, 6));
+ok(iconWrong.length === 0, '选项图标是动作线稿（非场景道具）', iconWrong.slice(0, 6));
+// m01 三个动作应分别为 坐下 / 走开 / 等待
+ok(ART.m01.options[0].art === ICONS.sit && ART.m01.options[1].art === ICONS['walk-away'],
+  'm01 图标映射正确（坐下/走开）');
+
+/* ---------------- 9. bridge 过渡句 ---------------- */
+const badBridge = [];
+D.scenes.slice(0, 29).forEach((sc) => {
+  sc.options.forEach((o) => {
+    const b = o.bridge || '';
+    if (b.length < 8 || b.length > 26) badBridge.push(sc.id + ':' + b);
+    if (b && o.text && b.indexOf(o.text) >= 0) badBridge.push(sc.id + ' 复读选项');
+  });
+});
+ok(badBridge.length === 0, '每个选项都有 8~26 字的过渡句且不复读选项', badBridge.slice(0, 5));
+
+/* ---------------- 10. 时间线重排 ---------------- */
+const chatBeats = D.beats.filter((b) => b.type === 'chat');
+const interBeats = D.beats.filter((b) => b.type === 'interlude');
+ok(D.beats.length === 43, '节拍总数 43（30+3+6+4）', D.beats.length);
+ok(chatBeats.length === 4 && !chatBeats.some((b) => b.id === 'c1'), '聊天 4 段且 c1 已合并进 m04');
+ok(interBeats.length === 6, '间章 6 段', interBeats.length);
+const noAct = [];
+(D.chats || []).concat(D.interludes || []).forEach((x) => {
+  if (!x.actLabel) noAct.push(x.id);
+});
+ok(noAct.length === 0, '聊天/间章 actLabel 均已重排', noAct);
+const order = D.beats.map((b) => b.id);
+ok(order.indexOf('c4') < order.indexOf('n3') && order.indexOf('n3') < order.indexOf('m13'),
+  '二月聊天/隆冬间章在 m13 之前');
+ok(order.indexOf('c3') > order.indexOf('m25'), '离别后聊天在 m25 之后');
+ok(order[order.length - 1] === 'n6', '尾声间章收在最后');
 
 /* ---------------- 汇总 ---------------- */
 console.log('\n亲和度/分支测试：' + pass + ' 通过，' + fail + ' 失败');

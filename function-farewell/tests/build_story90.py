@@ -58,6 +58,31 @@ def merge_body(lines, target_paras=2):
         out.append(cur)
     return out
 
+
+WARM_B = ["你们又见了一面。", "她先给你发了消息。", "你们一起走了一段路。", "她笑了笑，没再提。"]
+MID_B = ["日子照常过去。", "你们偶尔说几句话。", "谁都没有多问。", "一切照旧。"]
+COLD_B = ["你们有几天没说话。", "谁也没有先开口。", "那之后安静了一阵。", "你们各走各的。"]
+
+
+def time_phrase(meta):
+    """从下一幕的 meta 取时间词，拼成过渡开头。"""
+    m = (meta or "").split("·")[0].strip()
+    if re.match(r"^(一|二|三|四|五|六|七|八|九|十|十一|十二)月$", m):
+        return "到了" + m
+    if m.startswith("第二年"):
+        return "第二年"
+    if m in ("认识第九天", ""):
+        return "后来"
+    return m or "后来"
+
+
+def make_bridge(next_scene, opt, idx, k):
+    t = time_phrase(next_scene.get("meta") if next_scene else "")
+    d = opt.get("delta", 0)
+    pool = WARM_B if d >= 2 else (COLD_B if d <= -2 else MID_B)
+    clause = pool[(idx * 3 + k) % len(pool)]
+    return t + "，" + clause
+
 def synth_echo(prev_opt_label, prev_scene_title):
     """缺的第三条回响：只描述上一幕选项的动作后果，不引入新事实。"""
     label = prev_opt_label.strip("。 ")
@@ -122,6 +147,19 @@ def main():
             "shapeName": SHAPE_NAMES.get(e["code"], e["title"]),
             "shape": e["code"],
         })
+
+    # bridge：每个选项一句真正的过渡（时间流逝 + 她的反应）
+    for i, s in enumerate(scenes):
+        nxt = scenes[i + 1] if i + 1 < len(scenes) else None
+        for k, o in enumerate(s["options"]):
+            o["bridge"] = make_bridge(nxt, o, i, k)
+    for v in m07vars:
+        for k, o in enumerate(v["options"]):
+            nxt = scenes[7] if len(scenes) > 7 else None
+            o["bridge"] = make_bridge(nxt, o, 7, k)
+    for g in galgame:
+        for k, o in enumerate(g["options"]):
+            o["bridge"] = ""
 
     # 正文按 PDF 换行合并成段；meta 去掉制作标注
     for s in scenes + m07vars:

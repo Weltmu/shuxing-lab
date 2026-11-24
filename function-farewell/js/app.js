@@ -1,4 +1,4 @@
-/* 函数式告别 — 开场、八问与结局
+/* 函数告别式 — 开场、八问与结局
  * 单 Canvas 开场变形、单 #scene 转场、顶栏内联状态、单曲线背景。
  * 结局先完成 F(x) 绘图，再逐字显示正文与原理；题目、选项、
  * 函数映射、F(x) 求和和结局判定逻辑保持不变。
@@ -60,7 +60,7 @@
     '墨迹未干，结局未定',
     '点一下，让故事开始求和'
   ];
-  var SIGN_ITEMS = ['函数式告别', '恋爱 · 人生 · 感悟'];
+  var SIGN_ITEMS = ['函数告别式', '恋爱 · 人生 · 感悟'];
   var SIGN_IN_MS = 650;
   var SIGN_HOLD_MS = 2400;
   var SIGN_OUT_SPREAD = 360;
@@ -1862,7 +1862,7 @@ sec.querySelector('#seed-btn').addEventListener('click', function () {
     return [
       '<header class="game-header">',
       '  <div class="gh-row">',
-      '    <span class="wordmark">函数式告别</span>',
+      '    <span class="wordmark">函数告别式</span>',
       '    <span id="act-label" class="gh-act">' + actLabel + '</span>',
       '    <span id="scene-step" class="gh-step">' + step + '</span>',
       '  </div>',
@@ -2154,7 +2154,7 @@ sec.querySelector('#btn-continue').addEventListener('click', function () { goNex
     sec.innerHTML = [
       '<header class="game-header">',
       '  <div class="gh-row">',
-      '    <span class="wordmark">函数式告别</span>',
+      '    <span class="wordmark">函数告别式</span>',
       '    <span id="act-label" class="gh-act"></span>',
       '    <span id="scene-step" class="gh-step"></span>',
       '  </div>',
@@ -2234,7 +2234,7 @@ sec.querySelector('#btn-continue').addEventListener('click', function () { goNex
       var artWrap = document.createElement('span');
       artWrap.className = 'option-art';
       artWrap.setAttribute('aria-hidden', 'true');
-      artWrap.innerHTML = '<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet" aria-hidden="true">' + artMarkup + '</svg>';
+      artWrap.innerHTML = '<svg viewBox="0 0 200 240" preserveAspectRatio="xMidYMid meet" aria-hidden="true">' + artMarkup + '</svg>';
 
       var reveal = document.createElement('span');
       reveal.className = 'option-reveal';
@@ -2301,7 +2301,7 @@ function buildEndingScene() {
     sec.className = 'screen screen-ending';
     sec.innerHTML = [
       '<header class="ending-top">',
-      '  <span class="wordmark">函数式告别</span>',
+      '  <span class="wordmark">函数告别式</span>',
       '  <button id="btn-restart-top" class="btn btn-text" type="button">换一个开局</button>',
       '</header>',
       '<main class="ending-main">',
@@ -2369,7 +2369,7 @@ function buildEndingScene() {
       '  </section>',
       '  <footer class="ending-foot">',
       '    <span>FUNCTION IS FATE.</span>',
-      '    <span>函数式告别 · 2026</span>',
+      '    <span>函数告别式 · 2026</span>',
       '  </footer>',
       '</main>'
     ].join('\n');
@@ -3301,7 +3301,7 @@ function buildEndingScene() {
     var canvas = els.shareCard;
     if (!canvas || !canvas.width) return;
     var title = state.ending ? state.ending.title : '结局';
-    var filename = ('函数式告别-' + title + '.png').replace(/[\\/:*?"<>|]/g, '-');
+    var filename = ('函数告别式-' + title + '.png').replace(/[\\/:*?"<>|]/g, '-');
     var save = function (href) {
       var a = document.createElement('a');
       a.href = href;

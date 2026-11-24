@@ -21,7 +21,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们又见了一面。"
         },
         {
           "id": "m01b",
@@ -33,7 +34,8 @@ window.STORY90 = {
             0,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，谁也没有先开口。"
         },
         {
           "id": "m01c",
@@ -45,7 +47,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，那之后安静了一阵。"
         }
       ],
       "echoes": [],
@@ -73,7 +76,8 @@ window.STORY90 = {
             0,
             1
           ],
-          "delta": 0
+          "delta": 0,
+          "bridge": "主干，一切照旧。"
         },
         {
           "id": "m02b",
@@ -85,7 +89,8 @@ window.STORY90 = {
             0,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们又见了一面。"
         },
         {
           "id": "m02c",
@@ -97,7 +102,8 @@ window.STORY90 = {
             1,
             0
           ],
-          "delta": 1
+          "delta": 1,
+          "bridge": "主干，你们偶尔说几句话。"
         }
       ],
       "echoes": [
@@ -138,7 +144,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们一起走了一段路。"
         },
         {
           "id": "m03b",
@@ -150,7 +157,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，你们各走各的。"
         },
         {
           "id": "m03c",
@@ -162,7 +170,8 @@ window.STORY90 = {
             0,
             1
           ],
-          "delta": 1
+          "delta": 1,
+          "bridge": "主干，日子照常过去。"
         }
       ],
       "echoes": [
@@ -203,7 +212,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，谁也没有先开口。"
         },
         {
           "id": "m04b",
@@ -215,7 +225,8 @@ window.STORY90 = {
             0,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们一起走了一段路。"
         },
         {
           "id": "m04c",
@@ -227,7 +238,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她笑了笑，没再提。"
         }
       ],
       "echoes": [
@@ -268,7 +280,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们又见了一面。"
         },
         {
           "id": "m05b",
@@ -280,7 +293,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，谁也没有先开口。"
         },
         {
           "id": "m05c",
@@ -292,7 +306,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，那之后安静了一阵。"
         }
       ],
       "echoes": [
@@ -333,7 +348,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她笑了笑，没再提。"
         },
         {
           "id": "m06b",
@@ -345,7 +361,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们又见了一面。"
         },
         {
           "id": "m06c",
@@ -357,7 +374,8 @@ window.STORY90 = {
             -1,
             0
           ],
-          "delta": -1
+          "delta": -1,
+          "bridge": "主干，你们偶尔说几句话。"
         }
       ],
       "echoes": [
@@ -398,7 +416,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们一起走了一段路。"
         },
         {
           "id": "m07b",
@@ -410,7 +429,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，你们各走各的。"
         },
         {
           "id": "m07c",
@@ -422,7 +442,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，你们有几天没说话。"
         }
       ],
       "echoes": [
@@ -463,7 +484,8 @@ window.STORY90 = {
             0,
             0
           ],
-          "delta": 0
+          "delta": 0,
+          "bridge": "主干，你们偶尔说几句话。"
         },
         {
           "id": "m08b",
@@ -475,7 +497,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们一起走了一段路。"
         },
         {
           "id": "m08c",
@@ -487,7 +510,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，你们各走各的。"
         }
       ],
       "echoes": [
@@ -528,7 +552,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，你们有几天没说话。"
         },
         {
           "id": "m09b",
@@ -540,7 +565,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她先给你发了消息。"
         },
         {
           "id": "m09c",
@@ -552,7 +578,8 @@ window.STORY90 = {
             -1,
             0
           ],
-          "delta": -1
+          "delta": -1,
+          "bridge": "主干，谁都没有多问。"
         }
       ],
       "echoes": [
@@ -593,7 +620,8 @@ window.STORY90 = {
             0,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她笑了笑，没再提。"
         },
         {
           "id": "m10b",
@@ -605,7 +633,8 @@ window.STORY90 = {
             1,
             0
           ],
-          "delta": 1
+          "delta": 1,
+          "bridge": "主干，日子照常过去。"
         },
         {
           "id": "m10c",
@@ -617,7 +646,8 @@ window.STORY90 = {
             -1,
             1
           ],
-          "delta": 0
+          "delta": 0,
+          "bridge": "主干，你们偶尔说几句话。"
         }
       ],
       "echoes": [
@@ -658,7 +688,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们一起走了一段路。"
         },
         {
           "id": "m11b",
@@ -670,7 +701,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，你们各走各的。"
         },
         {
           "id": "m11c",
@@ -682,7 +714,8 @@ window.STORY90 = {
             -1,
             0
           ],
-          "delta": -1
+          "delta": -1,
+          "bridge": "主干，日子照常过去。"
         }
       ],
       "echoes": [
@@ -747,7 +780,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她先给你发了消息。"
         },
         {
           "id": "m12b",
@@ -759,7 +793,8 @@ window.STORY90 = {
             0,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们一起走了一段路。"
         },
         {
           "id": "m12c",
@@ -771,7 +806,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，你们各走各的。"
         }
       ],
       "echoes": [
@@ -812,7 +848,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们又见了一面。"
         },
         {
           "id": "m13b",
@@ -824,7 +861,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，谁也没有先开口。"
         },
         {
           "id": "m13c",
@@ -836,7 +874,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们一起走了一段路。"
         }
       ],
       "echoes": [
@@ -877,7 +916,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她笑了笑，没再提。"
         },
         {
           "id": "m14b",
@@ -889,7 +929,8 @@ window.STORY90 = {
             0,
             0
           ],
-          "delta": 0
+          "delta": 0,
+          "bridge": "主干，日子照常过去。"
         },
         {
           "id": "m14c",
@@ -901,7 +942,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，谁也没有先开口。"
         }
       ],
       "echoes": [
@@ -942,7 +984,8 @@ window.STORY90 = {
             0,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们一起走了一段路。"
         },
         {
           "id": "m15b",
@@ -954,7 +997,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她笑了笑，没再提。"
         },
         {
           "id": "m15c",
@@ -966,7 +1010,8 @@ window.STORY90 = {
             -1,
             0
           ],
-          "delta": -1
+          "delta": -1,
+          "bridge": "主干，日子照常过去。"
         }
       ],
       "echoes": [
@@ -1007,7 +1052,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她先给你发了消息。"
         },
         {
           "id": "m16b",
@@ -1019,7 +1065,8 @@ window.STORY90 = {
             0,
             0
           ],
-          "delta": 0
+          "delta": 0,
+          "bridge": "主干，谁都没有多问。"
         },
         {
           "id": "m16c",
@@ -1031,7 +1078,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，你们各走各的。"
         }
       ],
       "echoes": [
@@ -1072,7 +1120,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们又见了一面。"
         },
         {
           "id": "m17b",
@@ -1084,7 +1133,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，谁也没有先开口。"
         },
         {
           "id": "m17c",
@@ -1096,7 +1146,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们一起走了一段路。"
         }
       ],
       "echoes": [
@@ -1137,7 +1188,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她笑了笑，没再提。"
         },
         {
           "id": "m18b",
@@ -1149,7 +1201,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，你们有几天没说话。"
         },
         {
           "id": "m18c",
@@ -1161,7 +1214,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她先给你发了消息。"
         }
       ],
       "echoes": [
@@ -1226,7 +1280,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们一起走了一段路。"
         },
         {
           "id": "m19b",
@@ -1238,7 +1293,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，你们各走各的。"
         },
         {
           "id": "m19c",
@@ -1250,7 +1306,8 @@ window.STORY90 = {
             0,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们又见了一面。"
         }
       ],
       "echoes": [
@@ -1291,7 +1348,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她先给你发了消息。"
         },
         {
           "id": "m20b",
@@ -1303,7 +1361,8 @@ window.STORY90 = {
             -1,
             0
           ],
-          "delta": -1
+          "delta": -1,
+          "bridge": "主干，谁都没有多问。"
         },
         {
           "id": "m20c",
@@ -1315,7 +1374,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她笑了笑，没再提。"
         }
       ],
       "echoes": [
@@ -1356,7 +1416,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们又见了一面。"
         },
         {
           "id": "m21b",
@@ -1368,7 +1429,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，谁也没有先开口。"
         },
         {
           "id": "m21c",
@@ -1380,7 +1442,8 @@ window.STORY90 = {
             1,
             0
           ],
-          "delta": 1
+          "delta": 1,
+          "bridge": "主干，谁都没有多问。"
         }
       ],
       "echoes": [
@@ -1421,7 +1484,8 @@ window.STORY90 = {
             0,
             0
           ],
-          "delta": -1
+          "delta": -1,
+          "bridge": "主干，一切照旧。"
         },
         {
           "id": "m22b",
@@ -1433,7 +1497,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -1
+          "delta": -1,
+          "bridge": "主干，日子照常过去。"
         },
         {
           "id": "m22c",
@@ -1445,7 +1510,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她先给你发了消息。"
         }
       ],
       "echoes": [
@@ -1486,7 +1552,8 @@ window.STORY90 = {
             -1,
             0
           ],
-          "delta": -1
+          "delta": -1,
+          "bridge": "主干，谁都没有多问。"
         },
         {
           "id": "m23b",
@@ -1498,7 +1565,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她笑了笑，没再提。"
         },
         {
           "id": "m23c",
@@ -1510,7 +1578,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们又见了一面。"
         }
       ],
       "echoes": [
@@ -1551,7 +1620,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她先给你发了消息。"
         },
         {
           "id": "m24b",
@@ -1563,7 +1633,8 @@ window.STORY90 = {
             0,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，那之后安静了一阵。"
         },
         {
           "id": "m24c",
@@ -1575,7 +1646,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她笑了笑，没再提。"
         }
       ],
       "echoes": [
@@ -1616,7 +1688,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们又见了一面。"
         },
         {
           "id": "m25b",
@@ -1628,7 +1701,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，谁也没有先开口。"
         },
         {
           "id": "m25c",
@@ -1640,7 +1714,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们一起走了一段路。"
         }
       ],
       "echoes": [
@@ -1681,7 +1756,8 @@ window.STORY90 = {
             -1,
             0
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，你们各走各的。"
         },
         {
           "id": "m26b",
@@ -1693,7 +1769,8 @@ window.STORY90 = {
             0,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们又见了一面。"
         },
         {
           "id": "m26c",
@@ -1705,7 +1782,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，谁也没有先开口。"
         }
       ],
       "echoes": [
@@ -1770,7 +1848,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们一起走了一段路。"
         },
         {
           "id": "m27b",
@@ -1782,7 +1861,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，你们各走各的。"
         },
         {
           "id": "m27c",
@@ -1794,7 +1874,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们又见了一面。"
         }
       ],
       "echoes": [
@@ -1835,7 +1916,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她先给你发了消息。"
         },
         {
           "id": "m28b",
@@ -1847,7 +1929,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，那之后安静了一阵。"
         },
         {
           "id": "m28c",
@@ -1859,7 +1942,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她笑了笑，没再提。"
         }
       ],
       "echoes": [
@@ -1900,7 +1984,8 @@ window.STORY90 = {
             0,
             0
           ],
-          "delta": 0
+          "delta": 0,
+          "bridge": "主干，日子照常过去。"
         },
         {
           "id": "m29b",
@@ -1912,7 +1997,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，她先给你发了消息。"
         },
         {
           "id": "m29c",
@@ -1924,7 +2010,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "主干，你们一起走了一段路。"
         }
       ],
       "echoes": [
@@ -1965,7 +2052,8 @@ window.STORY90 = {
             1,
             0
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "后来，她笑了笑，没再提。"
         },
         {
           "id": "m30b",
@@ -1977,7 +2065,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "后来，你们有几天没说话。"
         },
         {
           "id": "m30c",
@@ -1989,7 +2078,8 @@ window.STORY90 = {
             1,
             1
           ],
-          "delta": 2
+          "delta": 2,
+          "bridge": "后来，她先给你发了消息。"
         }
       ],
       "echoes": [
@@ -2032,7 +2122,8 @@ window.STORY90 = {
             -1,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，谁也没有先开口。"
         },
         {
           "id": "m07b",
@@ -2044,7 +2135,8 @@ window.STORY90 = {
             -1,
             0
           ],
-          "delta": -1
+          "delta": -1,
+          "bridge": "主干，谁都没有多问。"
         },
         {
           "id": "m07c",
@@ -2056,7 +2148,8 @@ window.STORY90 = {
             0,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，你们各走各的。"
         }
       ],
       "echoes": [
@@ -2097,7 +2190,8 @@ window.STORY90 = {
             -1,
             0
           ],
-          "delta": -1
+          "delta": -1,
+          "bridge": "主干，你们偶尔说几句话。"
         },
         {
           "id": "m07b",
@@ -2109,7 +2203,8 @@ window.STORY90 = {
             0,
             0
           ],
-          "delta": 0
+          "delta": 0,
+          "bridge": "主干，谁都没有多问。"
         },
         {
           "id": "m07c",
@@ -2121,7 +2216,8 @@ window.STORY90 = {
             0,
             -1
           ],
-          "delta": -2
+          "delta": -2,
+          "bridge": "主干，你们各走各的。"
         }
       ],
       "echoes": [
@@ -2177,7 +2273,8 @@ window.STORY90 = {
           "nextRaw": "m11A",
           "next": "m11",
           "lineage": "A",
-          "id": "g1aa"
+          "id": "g1aa",
+          "bridge": ""
         },
         {
           "key": 2,
@@ -2192,7 +2289,8 @@ window.STORY90 = {
           "nextRaw": "m12A",
           "next": "m12",
           "lineage": "A",
-          "id": "g1ab"
+          "id": "g1ab",
+          "bridge": ""
         },
         {
           "key": 3,
@@ -2207,7 +2305,8 @@ window.STORY90 = {
           "nextRaw": "m11A",
           "next": "m11",
           "lineage": "A",
-          "id": "g1ac"
+          "id": "g1ac",
+          "bridge": ""
         }
       ]
     },
@@ -2244,7 +2343,8 @@ window.STORY90 = {
           "nextRaw": "m11B",
           "next": "m11",
           "lineage": "B",
-          "id": "g1ba"
+          "id": "g1ba",
+          "bridge": ""
         },
         {
           "key": 2,
@@ -2259,7 +2359,8 @@ window.STORY90 = {
           "nextRaw": "m12B",
           "next": "m12",
           "lineage": "B",
-          "id": "g1bb"
+          "id": "g1bb",
+          "bridge": ""
         },
         {
           "key": 3,
@@ -2274,7 +2375,8 @@ window.STORY90 = {
           "nextRaw": "m11B",
           "next": "m11",
           "lineage": "B",
-          "id": "g1bc"
+          "id": "g1bc",
+          "bridge": ""
         }
       ]
     },
@@ -2311,7 +2413,8 @@ window.STORY90 = {
           "nextRaw": "m11C",
           "next": "m11",
           "lineage": "C",
-          "id": "g1ca"
+          "id": "g1ca",
+          "bridge": ""
         },
         {
           "key": 2,
@@ -2326,7 +2429,8 @@ window.STORY90 = {
           "nextRaw": "m12C",
           "next": "m12",
           "lineage": "C",
-          "id": "g1cb"
+          "id": "g1cb",
+          "bridge": ""
         },
         {
           "key": 3,
@@ -2341,7 +2445,8 @@ window.STORY90 = {
           "nextRaw": "m11C",
           "next": "m11",
           "lineage": "C",
-          "id": "g1cc"
+          "id": "g1cc",
+          "bridge": ""
         }
       ]
     },
@@ -2378,7 +2483,8 @@ window.STORY90 = {
           "nextRaw": "m18A",
           "next": "m18",
           "lineage": "A",
-          "id": "g2aa"
+          "id": "g2aa",
+          "bridge": ""
         },
         {
           "key": 2,
@@ -2393,7 +2499,8 @@ window.STORY90 = {
           "nextRaw": "m19A",
           "next": "m19",
           "lineage": "A",
-          "id": "g2ab"
+          "id": "g2ab",
+          "bridge": ""
         },
         {
           "key": 3,
@@ -2408,7 +2515,8 @@ window.STORY90 = {
           "nextRaw": "m18A",
           "next": "m18",
           "lineage": "A",
-          "id": "g2ac"
+          "id": "g2ac",
+          "bridge": ""
         }
       ]
     },
@@ -2445,7 +2553,8 @@ window.STORY90 = {
           "nextRaw": "",
           "next": "",
           "lineage": "",
-          "id": "g2ba"
+          "id": "g2ba",
+          "bridge": ""
         },
         {
           "key": 2,
@@ -2460,7 +2569,8 @@ window.STORY90 = {
           "nextRaw": "m19B",
           "next": "m19",
           "lineage": "B",
-          "id": "g2bb"
+          "id": "g2bb",
+          "bridge": ""
         },
         {
           "key": 3,
@@ -2475,7 +2585,8 @@ window.STORY90 = {
           "nextRaw": "m18B",
           "next": "m18",
           "lineage": "B",
-          "id": "g2bc"
+          "id": "g2bc",
+          "bridge": ""
         }
       ]
     },
@@ -2512,7 +2623,8 @@ window.STORY90 = {
           "nextRaw": "m18C",
           "next": "m18",
           "lineage": "C",
-          "id": "g2ca"
+          "id": "g2ca",
+          "bridge": ""
         },
         {
           "key": 2,
@@ -2527,7 +2639,8 @@ window.STORY90 = {
           "nextRaw": "m19C",
           "next": "m19",
           "lineage": "C",
-          "id": "g2cb"
+          "id": "g2cb",
+          "bridge": ""
         },
         {
           "key": 3,
@@ -2542,7 +2655,8 @@ window.STORY90 = {
           "nextRaw": "m18C",
           "next": "m18",
           "lineage": "C",
-          "id": "g2cc"
+          "id": "g2cc",
+          "bridge": ""
         }
       ]
     },
@@ -2579,7 +2693,8 @@ window.STORY90 = {
           "nextRaw": "m26A",
           "next": "m26",
           "lineage": "A",
-          "id": "g3aa"
+          "id": "g3aa",
+          "bridge": ""
         },
         {
           "key": 2,
@@ -2594,7 +2709,8 @@ window.STORY90 = {
           "nextRaw": "m27A",
           "next": "m27",
           "lineage": "A",
-          "id": "g3ab"
+          "id": "g3ab",
+          "bridge": ""
         },
         {
           "key": 3,
@@ -2609,7 +2725,8 @@ window.STORY90 = {
           "nextRaw": "m26A",
           "next": "m26",
           "lineage": "A",
-          "id": "g3ac"
+          "id": "g3ac",
+          "bridge": ""
         }
       ]
     },
@@ -2646,7 +2763,8 @@ window.STORY90 = {
           "nextRaw": "m26B",
           "next": "m26",
           "lineage": "B",
-          "id": "g3ba"
+          "id": "g3ba",
+          "bridge": ""
         },
         {
           "key": 2,
@@ -2661,7 +2779,8 @@ window.STORY90 = {
           "nextRaw": "m27B",
           "next": "m27",
           "lineage": "B",
-          "id": "g3bb"
+          "id": "g3bb",
+          "bridge": ""
         },
         {
           "key": 3,
@@ -2676,7 +2795,8 @@ window.STORY90 = {
           "nextRaw": "m26B",
           "next": "m26",
           "lineage": "B",
-          "id": "g3bc"
+          "id": "g3bc",
+          "bridge": ""
         }
       ]
     },
@@ -2713,7 +2833,8 @@ window.STORY90 = {
           "nextRaw": "m26C",
           "next": "m26",
           "lineage": "C",
-          "id": "g3ca"
+          "id": "g3ca",
+          "bridge": ""
         },
         {
           "key": 2,
@@ -2728,7 +2849,8 @@ window.STORY90 = {
           "nextRaw": "m27C",
           "next": "m27",
           "lineage": "C",
-          "id": "g3cb"
+          "id": "g3cb",
+          "bridge": ""
         },
         {
           "key": 3,
@@ -2743,7 +2865,8 @@ window.STORY90 = {
           "nextRaw": "m26C",
           "next": "m26",
           "lineage": "C",
-          "id": "g3cc"
+          "id": "g3cc",
+          "bridge": ""
         }
       ]
     }
