@@ -56,7 +56,7 @@
     '所有的曲线，都从这一点出发',
     '有些告别，以函数的形式抵达',
     '你与它的距离，也是它的形状',
-    '八次选择之后，墨会给出形状',
+    '三十次选择之后，墨会给出形状',
     '墨迹未干，结局未定',
     '点一下，让故事开始求和'
   ];
@@ -1840,7 +1840,7 @@
       '  <p class="opening-note">开局只决定这一页的形状，不计入 F(x)。</p>',
       '</div>',
       '<footer class="intro-foot">',
-      '  <span>八个选择，一条曲线</span>',
+      '  <span>三十次选择，一条曲线</span>',
       '  <span>A FUNCTIONAL FAREWELL</span>',
       '</footer>'
     ].join('\n');
@@ -2201,7 +2201,11 @@ sec.querySelector('#btn-continue').addEventListener('click', function () { goNex
     var blocks = [];
     if (bridge) blocks.push({ text: bridge, memory: true });
     blocks = blocks.concat(resolveBlocks(scene.text));
-    blocks = blocks.concat(resolveBlocks(scene.echoes));
+    var echoText = '';
+    if (scene.echoMap && scene.echoMap[state.lastOptionId]) echoText = scene.echoMap[state.lastOptionId];
+    else if (scene.echoMap && Object.keys(scene.echoMap).length) echoText = DATA.echoFallback || '';
+    else if (scene.echoes && scene.echoes.length) echoText = scene.echoes[0];
+    if (echoText) blocks.push({ text: echoText, memory: true });
     blocks.forEach(function (block, i) {
       var p = document.createElement('p');
       if (block.memory) p.className = 'memory';
@@ -2316,7 +2320,7 @@ function buildEndingScene() {
       '      </div>',
       '    </header>',
       '    <div class="plot-wrap">',
-      '      <canvas id="ending-canvas" aria-label="结局图形：十二个选项的谐波项合成的参数曲线，可拖动查看"></canvas>',
+      '      <canvas id="ending-canvas" aria-label="结局图形：三十个选项的谐波项合成的参数曲线，可拖动查看"></canvas>',
       '      <p id="plot-collapsed-note" class="plot-collapsed-note" hidden>曲线已经收回，像一个句点。</p>',
       '    </div>',
       '    <div class="axis-reading">',
@@ -2337,7 +2341,7 @@ function buildEndingScene() {
       '    <p id="formula-note" class="formula-note" hidden></p>',
       '  </section>',
       '  <section class="block ending-deferred">',
-      '    <header class="block-head"><span>十二次选择</span><span>按发生顺序</span></header>',
+      '    <header class="block-head"><span>三十次选择</span><span>按发生顺序</span></header>',
       '    <ol id="choice-list" class="choice-list"></ol>',
       '  </section>',
       '  <section class="block ending-deferred novel-block">',
@@ -2575,6 +2579,9 @@ function buildEndingScene() {
     var choice = { fn: opt.fn, op: opt.op || '+', weight: opt.weight || 0, key: !!opt.key, h: opt.h || null, d: opt.d || null, signal: opt.signal || null };
     state.funcs.push(choice);
     state.picked.push(opt.id);
+    state.lastOptionId = opt.id;
+    if (window.FAREWELL_AFFINITY) window.FAREWELL_AFFINITY.onChoice(opt);
+    if (opt.skip) state.skipNextUnit = true;
     state.nextSceneId = opt.next || null;
     state.pendingBridge = opt.bridge || '';
     recordFlags(opt.flags);
@@ -2623,7 +2630,9 @@ function buildEndingScene() {
 
   function goNextBeat(fromChoice) {
     if (!fromChoice && isLocked()) return;
-    var next = state.beatIndex + 1;
+    var step = 1;
+    if (fromChoice && state.skipNextUnit) { step = 2; state.skipNextUnit = false; }
+    var next = state.beatIndex + step;
     if (next >= DATA.beats.length) {
       prepareEnding();
       transitionTo(buildEndingScene, { onAppend: setupEnding });
@@ -2642,6 +2651,12 @@ function buildEndingScene() {
   }
 
   function resolveBeatScene(beat) {
+    if (beat.branch === 'm07' && DATA.m07SceneFor) {
+      var pick = DATA.m07SceneFor();
+      if (window.FAREWELL_AFFINITY) window.FAREWELL_AFFINITY.noteVariant(pick.variant);
+      state.lastBranch = { point: 'm07', variant: pick.variant };
+      return pick.scene;
+    }
     var id = state.nextSceneId;
     var scene = id ? DATA.sceneById[id] : null;
     if (!scene || (beat.slot && scene.slot !== beat.slot)) {
@@ -2649,6 +2664,99 @@ function buildEndingScene() {
     }
     state.nextSceneId = null;
     return scene;
+  }
+
+
+  /* ---------------- galgame 单元（间章对话 + 3 选项） ---------------- */
+  function buildGalgameScene(unit) {
+    if (!unit) return buildGameScene(DATA.sceneById.m01);
+    var sec = document.createElement('section');
+    sec.id = 'screen-game';
+    sec.className = 'screen screen-game screen-gal';
+    var art = (window.FAREWELL_ART && window.FAREWELL_ART[unit.portraitFrom]) || {};
+    var pp = art.portrait;
+    var portraitMarkup = pp
+      ? '<img class="scene-portrait gal-portrait" src="' + pp.src + '" alt="" aria-hidden="true" decoding="async" style="--ptx:' + pp.spot[0] + '%;--pty:' + pp.spot[1] + '%;--ptw:' + pp.spot[2] + '%;--pth:' + pp.spot[3] + '%;">'
+      : '';
+    sec.innerHTML = [
+      gameHeaderInner('间章 · 对话', 'GALGAME'),
+      '<div class="game-main gal-main">',
+      '  <div class="gal-stage">',
+      '    <div class="gal-panel">',
+      '      <p class="gal-kicker">' + unit.title + '</p>',
+      '      <div id="gal-log" class="gal-log" aria-live="polite"></div>',
+      '      <p id="gal-expr" class="gal-expr" hidden></p>',
+      '      <div id="gal-options" class="gal-options" hidden></div>',
+      '      <button id="gal-next" class="btn btn-solid" type="button">继续</button>',
+      '    </div>',
+      portraitMarkup,
+      '  </div>',
+      '</div>',
+      gameFooterInner()
+    ].join('\n');
+
+    var log = sec.querySelector('#gal-log');
+    var nextBtn = sec.querySelector('#gal-next');
+    var optsEl = sec.querySelector('#gal-options');
+    var exprEl = sec.querySelector('#gal-expr');
+    var portrait = sec.querySelector('.gal-portrait');
+    var lines = unit.dialogue || [];
+    var shown = 0;
+
+    function showLine(i) {
+      if (i >= lines.length) return;
+      var d = document.createElement('p');
+      d.className = 'gal-line';
+      d.innerHTML = '<span class="gal-who">' + (lines[i].who || '她') + '</span>' + lines[i].text;
+      log.appendChild(d);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function showOptions() {
+      nextBtn.hidden = true;
+      optsEl.hidden = false;
+      optsEl.innerHTML = '';
+      unit.options.forEach(function (o, i) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'gal-option';
+        b.textContent = String.fromCharCode(65 + i) + '　' + o.label;
+        b.addEventListener('click', function () {
+          if (sec.dataset.done) return;
+          sec.dataset.done = '1';
+          Array.prototype.forEach.call(optsEl.children, function (x) { x.disabled = true; });
+          if (window.FAREWELL_AFFINITY) window.FAREWELL_AFFINITY.onChoice(o);
+          state.picked.push(o.id);
+          state.lastOptionId = o.id;
+          state.selections.push({ scene: unit.title, label: o.label, text: o.label, optionId: o.id });
+          // 表情反馈：有素材就换图，没有就显示文字
+          var cap = o.expr ? '（' + o.expr + '）' : '';
+          if (o.expr && window.FAREWELL_ART) {
+            var galSrc = 'assets/gal/' + ({ '平静': 'calm', '闭眼': 'blink', '疑惑': 'puzzle', '微笑': 'smile', '捂嘴笑': 'laugh', '害羞': 'shy', '生气': 'angry', '悲伤': 'sad' }[o.expr] || 'calm') + '-soft.png';
+            if (portrait) portrait.src = galSrc;
+          }
+          if (cap) { exprEl.textContent = cap; exprEl.hidden = false; }
+          if (portrait) portrait.classList.add('is-expr');
+          if (window.SFX) window.SFX.play('select');
+          setTimeout(function () {
+            if (o.skip) state.skipNextUnit = true;
+            goNextBeat(true);
+          }, 1700);
+        });
+        optsEl.appendChild(b);
+      });
+      focusTitle();
+    }
+
+    function advance() {
+      if (shown < lines.length) { showLine(shown); shown += 1; return; }
+      if (shown >= lines.length) { showOptions(); return; }
+    }
+
+    nextBtn.addEventListener('click', advance);
+    advance();
+
+    return sec;
   }
 
   function buildBeat(index) {
@@ -2659,6 +2767,11 @@ function buildEndingScene() {
     if (beat.type === 'chat') {
       var chat = DATA.chats.filter(function (c) { return c.id === beat.id; })[0];
       return buildChatScene(chat);
+    }
+    if (beat.type === 'galgame') {
+      var unit = DATA.galgameUnitFor ? DATA.galgameUnitFor(beat.group) : null;
+      if (unit && window.FAREWELL_AFFINITY) window.FAREWELL_AFFINITY.noteVariant(unit.variant);
+      return buildGalgameScene(unit);
     }
     if (beat.type === 'interlude') {
       var inter = DATA.interludes.filter(function (n) { return n.id === beat.id; })[0];

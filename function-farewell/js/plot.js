@@ -1,6 +1,6 @@
 /* 函数式告别 — 黑白天图像
  * 结局曲线：从左到右生长、关键点脉冲、拖动平移、滚轮缩放、双击复位、收束成点。
- * 分享卡片：纯 Canvas 绘制，包含 F(x) 图像、原理与八个函数。
+ * 分享卡片：纯 Canvas 绘制，包含 F(x) 图像、原理与三十次选择。
  */
 (function (root) {
   'use strict';
@@ -974,7 +974,7 @@
 
     ctx.font = '11px ' + MONO;
     ctx.fillStyle = '#7a7a7a';
-    ctx.fillText('八次选择', 64, afterPrinciple);
+    ctx.fillText('三十次选择', 64, afterPrinciple);
 
     var terms = funcs.map(function (id) {
       var f = DATA && DATA.functions[id];
