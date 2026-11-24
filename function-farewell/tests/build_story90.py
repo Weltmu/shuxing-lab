@@ -83,6 +83,26 @@ def make_bridge(next_scene, opt, idx, k):
     clause = pool[(idx * 3 + k) % len(pool)]
     return t + "，" + clause
 
+
+# 文档要求「全零信号的选项要么给信号，要么删掉」：按动作补最小合理信号（只在数据层，不改文案）
+SIGNAL_FIX = {
+    ("m08", "说新年快乐"): [1, 0, 0],
+    ("m14", "说我也是"): [1, 1, 0],
+    ("m16", "解释"): [0, 1, 1],
+    ("m29", "说很好看"): [1, 0, 0],
+    ("m07-cold", "说句累了"): [0, 1, 0],
+}
+
+
+def apply_signal_fix(scenes, m07vars):
+    for sc in scenes + m07vars:
+        for o in sc["options"]:
+            key = (sc["id"], o["label"])
+            if key in SIGNAL_FIX:
+                sig = SIGNAL_FIX[key]
+                o["signal"] = list(sig)
+                o["delta"] = max(-2, min(2, sum(sig)))
+
 def synth_echo(prev_opt_label, prev_scene_title):
     """缺的第三条回响：只描述上一幕选项的动作后果，不引入新事实。"""
     label = prev_opt_label.strip("。 ")
@@ -167,6 +187,8 @@ def main():
         s["meta"] = clean_meta(s.get("meta") or "")
     for g in galgame:
         g["meta"] = clean_meta(g.get("meta") or "")
+
+    apply_signal_fix(scenes, m07vars)
 
     payload = {
         "scenes": scenes,

@@ -188,6 +188,15 @@
   }
   reflowActLabels();
 
+
+  /* 聊天回复明确“不影响走向”：清掉旧版 next（否则 resolveBeatScene 会回落到默认幕） */
+  (function stripChatNext() {
+    (D.chats || []).forEach(function (c) {
+      (c.replies || []).forEach(function (r) { r.next = null; });
+      if (c.reply) c.reply.next = null;
+    });
+  })();
+
   /* ---------------- 结局 ---------------- */
   var SHAPE_OF = { A: 'heart', B: 'heart-half', C: 'asymptote', D: 'pause', E: 'two-lines' };
   var endings = {};
