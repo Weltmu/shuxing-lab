@@ -2369,3 +2369,39 @@ html, body { height: 100%; overflow: hidden !important; overscroll-behavior: non
 }
 .sfx-toggle:hover { color: #000; border-color: #b9b5ac; }
 html[data-sfx="off"] .sfx-toggle { opacity: .5; }
+
+/* ============ 手机对话：机身高度固定，消息在机身内滚动（不随条数变长） ============ */
+.screen-chat {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden !important;
+}
+.screen-chat .chat-main {
+  flex: 1;
+  min-height: 0;
+  justify-content: flex-start;
+  padding-top: calc(var(--header-h) + 26px);
+  padding-bottom: 12px;
+}
+.chat-phone {
+  flex: none;
+  /* 机身高度只跟视口有关，和消息条数无关 */
+  --phone-h: clamp(380px, calc(100vh - 230px), 600px);
+  height: var(--phone-h) !important;
+  max-height: var(--phone-h) !important;
+  min-height: var(--phone-h) !important;
+  overflow: hidden;
+}
+.chat-phone .chat-log {
+  flex: 1 1 auto;
+  min-height: 0;
+  justify-content: flex-start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.chat-phone .chat-replies {
+  flex: 0 0 auto;
+  max-height: 46%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
